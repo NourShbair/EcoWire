@@ -60,3 +60,5 @@ ehthumbs_vista.db
 # Testing
 /coverage
 *.lcov
+Frontend/package-lock.json
+package-lock.json
