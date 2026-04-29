@@ -27,11 +27,18 @@ const CreatePolicyForm = () => {
             </div>
 
             {/* Stepper Header */}
+            {/* Stepper Header */}
             <div className="mb-5 d-flex justify-content-between position-relative px-4">
-                <div className="position-absolute start-0 end-0 bg-secondary opacity-20 mx-5" style={{ top: 22, height: 2, zIndex: 0 }}></div>
+                <div className="position-absolute bg-secondary opacity-10" style={{ top: 22, left: 50, right: 50, height: 2, zIndex: 0 }}></div>
                 <div
-                    className="position-absolute start-0 bg-success transition-all duration-500 mx-5"
-                    style={{ top: 22, height: 3, width: `calc(${((step - 1) / 2) * 100}% - 3rem)`, zIndex: 1 }}
+                    className="position-absolute bg-success transition-all duration-500"
+                    style={{
+                        top: 22,
+                        left: 50,
+                        height: 3,
+                        width: `calc((${step - 1} / 2) * (100% - 100px))`,
+                        zIndex: 1
+                    }}
                 ></div>
 
                 {steps.map((s) => (
@@ -248,12 +255,12 @@ const CreatePolicyForm = () => {
                             className="text-center py-4"
                         >
                             <div className="mb-4 d-inline-block p-4 rounded-circle bg-mint text-success shadow-sm">
-                                <Zap size={60} strokeWidth={2.5} />
+                                <Zap size={40} strokeWidth={2.5} />
                             </div>
                             <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
                             <p className="text-muted mb-5">Your {policyType} policy has been analyzed for environmental impact.</p>
 
-                            <div className="glass-card p-4 mb-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400 }}>
+                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400, marginBottom: '100px' }}>
                                 <h1 className="display-3 fw-bold text-success mb-0">85</h1>
                                 <p className="fw-bold text-success text-uppercase tracking-wider">Excellent Score</p>
                                 <hr className="opacity-20" />
