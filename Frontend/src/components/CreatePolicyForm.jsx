@@ -1,16 +1,88 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
+import { apiService } from '../services/api';
 import clsx from 'clsx';
 
 const CreatePolicyForm = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
-    const [policyType, setPolicyType] = useState('AUTO');
+    const [loading, setLoading] = useState(false);
+    const [previewScore, setPreviewScore] = useState(null);
 
-    const nextStep = () => setStep((s) => Math.min(s + 1, 3));
+    const [formData, setFormData] = useState({
+        policyType: 'AUTO',
+        customerName: '',
+        contactInfo: '',
+        // Auto
+        vehicleId: '',
+        vehicleType: 'PETROL',
+        annualMileage: 'MEDIUM',
+        usageType: 'PERSONAL',
+        fuelEfficiency: 'MEDIUM',
+        // Home
+        propertyAddress: '',
+        energyRating: 'C',
+        hasSolarPanels: false,
+        insulationType: 'STANDARD',
+        heatingSystem: 'GAS',
+        waterConservationFeatures: '',
+        // Property
+        propertyType: 'COMMERCIAL',
+        certifications: '',
+        energySystems: 'GRID',
+        wasteManagement: 'BASIC_RECYCLING',
+        buildingAge: 10
+    });
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleTypeChange = (type) => {
+        setFormData(prev => ({ ...prev, policyType: type }));
+    };
+
+    const nextStep = async () => {
+        if (step === 2) {
+            setLoading(true);
+            try {
+                const res = await apiService.calculatePreview({
+                    policyType: formData.policyType,
+                    ...formData
+                });
+                setPreviewScore(res.data);
+                setStep(3);
+            } catch (err) {
+                alert("Failed to calculate preview. Check console for details.");
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setStep((s) => Math.min(s + 1, 3));
+        }
+    };
+
     const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+
+    const handleFinalize = async () => {
+        setLoading(true);
+        try {
+            const res = await apiService.createPolicy(formData);
+            // Navigate to dashboard of the new policy
+            navigate(`/dashboard/${res.data.policyId}`);
+        } catch (err) {
+            console.error("Creation failed", err);
+            alert("Failed to create policy. Please check backend logs.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const steps = [
         { id: 1, name: 'Identity', icon: User },
@@ -19,14 +91,13 @@ const CreatePolicyForm = () => {
     ];
 
     return (
-        <div className="max-w-4xl mx-auto text-start">
+        <div className="max-w-4xl mx-auto text-start" style={{ paddingBottom: '150px' }}>
             {/* Header */}
             <div className="mb-5">
                 <h2 className="fw-bold text-dark">New Policy Creation</h2>
-                <p className="text-muted">Complete the steps below to generate a policy.</p>
+                <p className="text-muted">Complete the steps below to generate a sustainability-linked policy.</p>
             </div>
 
-            {/* Stepper Header */}
             {/* Stepper Header */}
             <div className="mb-5 d-flex justify-content-between position-relative px-4">
                 <div className="position-absolute bg-secondary opacity-10" style={{ top: 22, left: 50, right: 50, height: 2, zIndex: 0 }}></div>
@@ -55,7 +126,7 @@ const CreatePolicyForm = () => {
             </div>
 
             {/* Form Content */}
-            <div>
+            <div className="min-vh-50">
                 <AnimatePresence mode="wait">
                     {/* STEP 1: IDENTITY */}
                     {step === 1 && (
@@ -65,15 +136,31 @@ const CreatePolicyForm = () => {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                         >
-                            <h4 className="fw-bold mb-4 border-bottom pb-3">1. Customer Identity</h4>
-                            <div className="row mt-2 g-5">
+                            <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">1. Customer Identity</h4>
+                            <div className="row mt-2 g-4">
                                 <div className="col-md-6">
                                     <label className="form-label text-muted fw-bold">Full Name</label>
-                                    <input type="text" className="form-control form-control-lg bg-light border-0" placeholder="John Doe" />
+                                    <input
+                                        type="text"
+                                        name="customerName"
+                                        value={formData.customerName}
+                                        onChange={handleChange}
+                                        className="form-control form-control-lg bg-light border-0"
+                                        placeholder="e.g. John Green"
+                                        required
+                                    />
                                 </div>
                                 <div className="col-md-6">
                                     <label className="form-label text-muted fw-bold">Email Address</label>
-                                    <input type="email" className="form-control form-control-lg bg-light border-0" placeholder="john@example.com" />
+                                    <input
+                                        type="email"
+                                        name="contactInfo"
+                                        value={formData.contactInfo}
+                                        onChange={handleChange}
+                                        className="form-control form-control-lg bg-light border-0"
+                                        placeholder="john@example.com"
+                                        required
+                                    />
                                 </div>
                                 <div className="col-12">
                                     <label className="form-label text-muted fw-bold mb-3">Select Policy Type</label>
@@ -81,10 +168,11 @@ const CreatePolicyForm = () => {
                                         {['AUTO', 'HOME', 'PROPERTY'].map(t => (
                                             <button
                                                 key={t}
-                                                onClick={() => setPolicyType(t)}
+                                                type="button"
+                                                onClick={() => handleTypeChange(t)}
                                                 className={clsx(
                                                     "btn px-5 py-2 border-2 fw-bold transition-all",
-                                                    policyType === t ? "btn-success border-success text-white shadow-sm" : "btn-outline-secondary opacity-60 hover-eco-btn"
+                                                    formData.policyType === t ? "btn-success border-success text-white shadow-sm" : "btn-outline-secondary btn-hover-eco opacity-60"
                                                 )}
                                             >
                                                 {t}
@@ -104,140 +192,122 @@ const CreatePolicyForm = () => {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                         >
-                            <h4 className="fw-bold mb-4 border-bottom pb-3">2. {policyType} Details</h4>
+                            <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">2. {formData.policyType} Configuration</h4>
                             <div className="row g-4">
-                                {policyType === 'AUTO' && (
+                                {formData.policyType === 'AUTO' && (
                                     <>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Vehicle ID (VIN)</label>
-                                            <input type="text" className="form-control form-control-lg bg-light border-0" placeholder="17-character VIN" />
+                                            <input type="text" name="vehicleId" value={formData.vehicleId} onChange={handleChange} className="form-control form-control-lg bg-light border-0" placeholder="17-character VIN" />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Vehicle Type</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>Electric</option>
-                                                <option>Hybrid</option>
-                                                <option>Petrol</option>
-                                                <option>Diesel</option>
+                                            <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="ELECTRIC">Electric</option>
+                                                <option value="HYBRID">Hybrid</option>
+                                                <option value="PETROL">Petrol</option>
+                                                <option value="DIESEL">Diesel</option>
                                             </select>
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Annual Mileage</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>Low (&lt; 5k)</option>
-                                                <option>Medium (5k-15k)</option>
-                                                <option>High (&gt; 15k)</option>
-                                            </select>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Usage Type</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>Personal</option>
-                                                <option>Business</option>
-                                                <option>Commercial</option>
+                                            <select name="annualMileage" value={formData.annualMileage} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="LOW">Low (&lt; 10k km)</option>
+                                                <option value="MEDIUM">Medium (10k-20k km)</option>
+                                                <option value="HIGH">High (&gt; 20k km)</option>
                                             </select>
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Fuel Efficiency</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>High</option>
-                                                <option>Medium</option>
-                                                <option>Low</option>
+                                            <select name="fuelEfficiency" value={formData.fuelEfficiency} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="HIGH">High (&gt; 15 km/L)</option>
+                                                <option value="MEDIUM">Medium (10-15 km/L)</option>
+                                                <option value="LOW">Low (&lt; 10 km/L)</option>
                                             </select>
                                         </div>
                                     </>
                                 )}
 
-                                {policyType === 'HOME' && (
+                                {formData.policyType === 'HOME' && (
                                     <>
                                         <div className="col-12">
                                             <label className="form-label text-muted fw-bold">Property Address</label>
-                                            <input type="text" className="form-control form-control-lg bg-light border-0" placeholder="123 Eco Street" />
+                                            <input type="text" name="propertyAddress" value={formData.propertyAddress} onChange={handleChange} className="form-control form-control-lg bg-light border-0" placeholder="123 Eco Street" />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Energy Rating</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>A</option>
-                                                <option>B</option>
-                                                <option>C</option>
-                                                <option>D</option>
-                                                <option>E</option>
-                                                <option>F</option>
-                                                <option>G</option>
+                                            <select name="energyRating" value={formData.energyRating} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(r => <option key={r} value={r}>{r}</option>)}
                                             </select>
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Insulation Type</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>None</option>
-                                                <option>Basic</option>
-                                                <option>Standard</option>
-                                                <option>Advanced</option>
+                                            <select name="insulationType" value={formData.insulationType} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="NONE">None</option>
+                                                <option value="BASIC">Basic</option>
+                                                <option value="STANDARD">Standard</option>
+                                                <option value="ADVANCED">Advanced</option>
                                             </select>
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Heating System</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>Gas</option>
-                                                <option>Oil</option>
-                                                <option>Electric</option>
-                                                <option>Heat_Pump</option>
-                                                <option>Geothermal</option>
+                                            <select name="heatingSystem" value={formData.heatingSystem} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="GAS">Gas</option>
+                                                <option value="OIL">Oil</option>
+                                                <option value="ELECTRIC">Electric</option>
+                                                <option value="HEAT_PUMP">Heat Pump</option>
+                                                <option value="GEOTHERMAL">Geothermal</option>
                                             </select>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Water Conservation Features</label>
-                                            <input type="text" className="form-control form-control-lg bg-light border-0" placeholder="e.g. rainwater harvesting" />
                                         </div>
                                         <div className="col-md-12">
                                             <div className="form-check form-switch p-4 bg-light rounded-3 d-flex align-items-center">
-                                                <input className="form-check-input ms-0 me-3" type="checkbox" id="solarSwitch" style={{ transform: 'scale(1.5)' }} />
+                                                <input
+                                                    className="form-check-input ms-0 me-3"
+                                                    type="checkbox"
+                                                    name="hasSolarPanels"
+                                                    checked={formData.hasSolarPanels}
+                                                    onChange={handleChange}
+                                                    id="solarSwitch"
+                                                    style={{ transform: 'scale(1.5)' }}
+                                                />
                                                 <label className="form-check-label fw-bold mb-0" htmlFor="solarSwitch">Property has active Solar Panels</label>
                                             </div>
                                         </div>
                                     </>
                                 )}
 
-                                {policyType === 'PROPERTY' && (
+                                {formData.policyType === 'PROPERTY' && (
                                     <>
                                         <div className="col-12">
                                             <label className="form-label text-muted fw-bold">Property Address</label>
-                                            <input type="text" className="form-control form-control-lg bg-light border-0" placeholder="456 Corporate Blvd" />
+                                            <input type="text" name="propertyAddress" value={formData.propertyAddress} onChange={handleChange} className="form-control form-control-lg bg-light border-0" placeholder="456 Corporate Blvd" />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Property Type</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>Commercial</option>
-                                                <option>Residential</option>
-                                            </select>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Certifications</label>
-                                            <input type="text" className="form-control form-control-lg bg-light border-0" placeholder="e.g. LEED Gold" />
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Energy Systems</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>Grid</option>
-                                                <option>Solar</option>
-                                                <option>Wind</option>
-                                                <option>Hybrid</option>
-                                                <option>Geothermal</option>
+                                            <select name="propertyType" value={formData.propertyType} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="COMMERCIAL">Commercial</option>
+                                                <option value="RESIDENTIAL">Residential</option>
                                             </select>
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Waste Management</label>
-                                            <select className="form-select form-select-lg bg-light border-0">
-                                                <option>None</option>
-                                                <option>Basic_Recycling</option>
-                                                <option>Advanced_Recycling</option>
-                                                <option>Composting</option>
-                                                <option>Zero_Waste</option>
+                                            <select name="wasteManagement" value={formData.wasteManagement} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
+                                                <option value="NONE">None</option>
+                                                <option value="BASIC_RECYCLING">Basic Recycling</option>
+                                                <option value="ADVANCED_RECYCLING">Advanced Recycling</option>
+                                                <option value="COMPOSTING">Composting</option>
+                                                <option value="ZERO_WASTE">Zero Waste</option>
                                             </select>
                                         </div>
                                         <div className="col-md-12">
                                             <label className="form-label text-muted fw-bold">Building Age (years)</label>
-                                            <input type="number" className="form-control form-control-lg bg-light border-0" placeholder="10" />
+                                            <input
+                                                type="number"
+                                                name="buildingAge"
+                                                value={formData.buildingAge}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                            />
                                         </div>
                                     </>
                                 )}
@@ -245,8 +315,8 @@ const CreatePolicyForm = () => {
                         </motion.div>
                     )}
 
-                    {/* STEP 3: IMPACT */}
-                    {step === 3 && (
+                    {/* STEP 3: IMPACT (DYNAMIC PREVIEW) */}
+                    {step === 3 && previewScore && (
                         <motion.div
                             key="step3"
                             initial={{ opacity: 0, x: 20 }}
@@ -258,18 +328,27 @@ const CreatePolicyForm = () => {
                                 <Zap size={40} strokeWidth={2.5} />
                             </div>
                             <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
-                            <p className="text-muted mb-5">Your {policyType} policy has been analyzed for environmental impact.</p>
+                            <p className="text-muted mb-5">Live results based on your {formData.policyType} configuration.</p>
 
-                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400, marginBottom: '100px' }}>
-                                <h1 className="display-3 fw-bold text-success mb-0">85</h1>
-                                <p className="fw-bold text-success text-uppercase tracking-wider">Excellent Score</p>
+                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto mb-5" style={{ maxWidth: 400 }}>
+                                <h1 className="display-3 fw-bold text-success mb-0">{previewScore.totalScore}</h1>
+                                <p className="fw-bold text-success text-uppercase tracking-wider">
+                                    {previewScore.totalScore >= 70 ? 'Excellent' : previewScore.totalScore >= 40 ? 'Moderate' : 'Needs Improvement'}
+                                </p>
                                 <hr className="opacity-20" />
                                 <div className="text-start bg-mint p-3 rounded-3 mt-3">
                                     <div className="d-flex align-items-center gap-2 mb-2 text-success fw-bold">
                                         <CheckCircle2 size={18} />
-                                        <span>Green Discount Eligible</span>
+                                        <span>
+                                            {previewScore.totalScore >= 80 ? '15% Discount Eligible' :
+                                                previewScore.totalScore >= 60 ? '10% Discount Eligible' : 'Standard Rate Applied'}
+                                        </span>
                                     </div>
-                                    <p className="small text-muted mb-0">This policy qualifies for a 15% reduction in premium due to high ESG compliance.</p>
+                                    <p className="small text-muted mb-0">
+                                        {previewScore.totalScore >= 60
+                                            ? "Congratulations! Your eco-friendly choices qualify for a green premium reduction."
+                                            : "Increase your score by switching to sustainable alternatives to qualify for discounts."}
+                                    </p>
                                 </div>
                             </div>
                         </motion.div>
@@ -280,10 +359,11 @@ const CreatePolicyForm = () => {
             {/* Fixed Navigation Buttons */}
             <div
                 className="position-fixed bottom-0 end-0 border-top d-flex justify-content-between align-items-center"
-                style={{ width: 'calc(100% - 280px)', backgroundColor: 'var(--eco-bg)', zIndex: 1000, padding: '1.5rem 3rem' }}
+                style={{ width: 'calc(100% - 280px)', backgroundColor: 'white', zIndex: 1000, padding: '1.5rem 3rem' }}
             >
                 <button
                     onClick={prevStep}
+                    disabled={loading}
                     className={clsx("btn btn-hover-eco px-4 py-2 fw-bold d-flex align-items-center gap-2", step === 1 && "invisible")}
                 >
                     <ArrowLeft size={18} /> Back
@@ -291,16 +371,19 @@ const CreatePolicyForm = () => {
                 {step < 3 ? (
                     <button
                         onClick={nextStep}
-                        className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2"
+                        disabled={loading}
+                        className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
                     >
-                        Continue <ArrowRight size={18} />
+                        {loading ? <Loader2 className="animate-spin" size={18} /> : <>Continue <ArrowRight size={18} /></>}
                     </button>
                 ) : (
                     <button
                         className="btn btn-eco px-4 py-2 shadow"
-                        onClick={() => navigate('/dashboard/NEW-POLICY-123')}
+                        disabled={loading}
+                        onClick={handleFinalize}
                     >
-                        Finalize & Create Policy
+                        {loading ? <Loader2 className="animate-spin me-2" size={18} /> : null}
+                        Create Policy
                     </button>
                 )}
             </div>
