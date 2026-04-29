@@ -90,8 +90,7 @@ const PoliciesList = () => {
                             ) : filteredPolicies.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="text-center py-5">
-                                        <div className="text-muted mb-2">No policies found matching your search.</div>
-                                        <button onClick={() => navigate('/')} className="btn btn-sm btn-link text-success p-0">Create your first policy</button>
+                                        <div className="text-muted mb-2">No policies found.</div>
                                     </td>
                                 </tr>
                             ) : (
