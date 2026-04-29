@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Leaf, Shield, ArrowLeft, Activity, Loader2, AlertCircle } from 'lucide-react';
+import { Leaf, Shield, CheckCircle2, TrendingUp, ArrowLeft, Activity, Loader2, AlertCircle } from 'lucide-react';
 import { apiService } from '../services/api';
 import RecommendationsList from './RecommendationsList';
 
