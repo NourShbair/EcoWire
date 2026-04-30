@@ -6,9 +6,7 @@
     --eco-bg: #f8fbf9;
     --glass-bg: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(0, 77, 64, 0.15);
-    /* Slightly darker eco-tinted border */
     --sidebar-width: 280px;
-    color-scheme: light;
 }
 
 body {
@@ -69,7 +67,6 @@ body {
     border-radius: 10px;
     border: 1px solid #e2e8f0;
     padding: 12px;
-    color-scheme: light !important;
 }
 
 .form-control:focus,
@@ -78,33 +75,15 @@ body {
     outline: none !important;
 }
 
-/* .form-select option {
-    background-color: #ffffff !important;
-    color: #2c3e50 !important;
-} */
 
-/* Eco Theme Overrides for Bootstrap Components */
 .form-check-input:checked {
     background-color: var(--eco-accent) !important;
 }
-
-/* UNUSED 
-.list-group-item.active {
-    background-color: var(--eco-mint) !important;
-    color: var(--eco-primary) !important;
-    border-color: var(--eco-mint) !important;
-}
-*/
 
 .bg-mint {
     background-color: var(--eco-mint) !important;
 }
 
-/* UNUSED
-.text-eco {
-    color: var(--eco-primary) !important;
-}
-*/
 
 .btn-hover-eco {
     background-color: transparent;
@@ -117,6 +96,18 @@ body {
     background-color: rgba(25, 135, 84, 0.1) !important;
     color: #198754 !important;
     border-color: rgba(25, 135, 84, 0.25) !important;
+}
+
+/* Dropdown  */
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(25, 135, 84, 0.08) !important;
+    color: #198754 !important;
+}
+
+.dropdown-item:active {
+    background-color: var(--eco-mint) !important;
+    color: var(--eco-primary) !important;
 }
 
 .hover-eco-btn:hover {

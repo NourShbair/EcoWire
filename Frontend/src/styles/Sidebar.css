@@ -8,27 +8,33 @@
     left: 0;
     top: 0;
     z-index: 1000;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.7);
-    padding: 12px 24px;
-    border-radius: 8px;
-    margin: 4px 16px;
-    transition: all 0.2s;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin: 8px 16px;
+    transition: all 0.2s ease-in-out;
     text-decoration: none;
     display: block;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
-.sidebar .nav-link:hover,
+.sidebar .nav-link:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
 .sidebar .nav-link.active {
     color: white;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.12);
 }
 
 .border-white-20 {
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .smaller {

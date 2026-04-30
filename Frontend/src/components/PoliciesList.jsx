@@ -1,81 +1,145 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
+import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, ArrowRight } from 'lucide-react';
+import { Search, Plus, Loader2 } from 'lucide-react';
 
 const PoliciesList = () => {
+    const [policies, setPolicies] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
-    // Mock data representing policies fetched from the backend
-    const policies = [
-        { id: "POL-8024-ESG", holder: "John Doe", type: "AUTO", date: "2026-04-25", score: 85, status: "Excellent" },
-        { id: "POL-9102-ESG", holder: "Sarah Jenkins", type: "HOME", date: "2026-04-26", score: 62, status: "Average" },
-        { id: "POL-1044-ESG", holder: "Acme Corp", type: "PROPERTY", date: "2026-04-27", score: 30, status: "Outstanding" },
-    ];
+    const fetchPolicies = () => {
+        setLoading(true);
+        apiService.getAllPolicies()
+            .then(res => setPolicies(res.data))
+            .catch(err => console.error("List fetch failed", err))
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchPolicies();
+    }, []);
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+               ' ' + 
+               date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const filteredPolicies = policies.filter(p =>
+        p.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.policyType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.policyId?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
-        <div className="container-fluid text-start pb-5">
-            <div className="d-flex justify-content-between align-items-end mb-5">
+        <div className="p-4">
+            {/* Page Header */}
+            <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2 className="fw-bold text-dark mb-1">Policies</h2>
+                    <h1 className="fw-bold text-dark mb-1" style={{ fontSize: '2.5rem' }}>Policies</h1>
                     <p className="text-muted mb-0">Manage and review your generated ESG policies.</p>
                 </div>
-                <button onClick={() => navigate('/')} className="btn btn-eco fw-bold d-flex align-items-center gap-2 px-4 py-2">
-                    <Plus size={16} /> New Policy
+                <button 
+                    onClick={() => navigate('/')}
+                    className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                >
+                    <Plus size={20} /> New Policy
                 </button>
             </div>
 
-            <div className="bg-white p-4 rounded-4 shadow-sm border">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h5 className="fw-bold mb-0">Policies</h5>
-                    <div className="position-relative w-25 min-w-200">
-                        <Search size={18} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
-                        <input type="text" className="form-control bg-light border-0 ps-5 py-2" placeholder="Search policies..." />
+            {/* Table Container */}
+            <div className="card border shadow-sm mt-5" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+                <div className="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 className="fw-bold text-dark mb-0">Policies</h5>
+                    <div className="position-relative" style={{ width: '320px' }}>
+                        <Search className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" size={18} />
+                        <input
+                            type="text"
+                            className="form-control ps-5 border-0 bg-light py-2"
+                            style={{ borderRadius: '10px' }}
+                            placeholder="Search policies..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
                 </div>
 
                 <div className="table-responsive">
-                    <table className="table table-hover align-middle mb-0">
-                        <thead className="table-light text-muted small text-uppercase tracking-wider">
-                            <tr>
-                                <th className="py-3 px-4 fw-bold border-0 rounded-start">Policy ID</th>
-                                <th className="py-3 fw-bold border-0">Holder</th>
-                                <th className="py-3 fw-bold border-0">Type</th>
-                                <th className="py-3 fw-bold border-0">Date</th>
-                                <th className="py-3 fw-bold border-0">Eco Score</th>
-                                <th className="py-3 px-4 fw-bold border-0 text-end rounded-end">Action</th>
+                    <table className="table align-middle mb-0">
+                        <thead>
+                            <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                <th className="py-3 px-4 border-0 text-dark small fw-bold" style={{ backgroundColor: 'inherit' }}>POLICY ID</th>
+                                <th className="py-3 border-0 text-dark small fw-bold" style={{ backgroundColor: 'inherit' }}>HOLDER</th>
+                                <th className="py-3 border-0 text-dark small fw-bold text-center" style={{ backgroundColor: 'inherit' }}>TYPE</th>
+                                <th className="py-3 border-0 text-dark small fw-bold" style={{ backgroundColor: 'inherit' }}>DATE</th>
+                                <th className="py-3 border-0 text-dark small fw-bold" style={{ backgroundColor: 'inherit' }}>ECO SCORE</th>
+                                <th className="py-3 px-4 border-0 text-dark small fw-bold text-end" style={{ backgroundColor: 'inherit' }}>ACTION</th>
                             </tr>
                         </thead>
-                        <tbody className="border-top-0">
-                            {policies.map(p => (
-                                <tr
-                                    key={p.id}
-                                    className="cursor-pointer transition-all hover-bg-light"
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => navigate(`/dashboard/${p.id}`)}
-                                >
-                                    <td className="px-4 py-3 fw-bold text-dark">{p.id}</td>
-                                    <td className="py-3 text-muted fw-bold">{p.holder}</td>
-                                    <td className="py-3">
-                                        <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2">
-                                            {p.type}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 text-muted small">{p.date}</td>
-                                    <td className="py-3">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <div className="progress bg-light" style={{ width: 60, height: 6 }}>
-                                                <div className={`progress-bar ${p.score >= 67 ? 'bg-success' : p.score >= 34 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${p.score}%` }}></div>
-                                            </div>
-                                            <span className="fw-bold text-dark small">{p.score}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-end">
-                                        <button className="btn bg-success bg-opacity-10 text-success fw-bold border border-success border-opacity-25 btn-sm d-inline-flex align-items-center gap-1 px-3 py-2">
-                                            View Report <ArrowRight size={14} />
-                                        </button>
+                        <tbody>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-5">
+                                        <Loader2 size={40} className="animate-spin text-success mx-auto mb-2" />
+                                        <p className="text-muted">Loading policies...</p>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : filteredPolicies.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-5">
+                                        <div className="text-muted mb-2">No policies found.</div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredPolicies.map((p) => {
+                                    const score = p.ecoScore?.totalScore || 0;
+                                    const scoreColor = score >= 67 ? "#1a5f49" : score >= 34 ? "#ffc107" : "#dc3545";
+
+                                    return (
+                                        <tr key={p.policyId} className="border-bottom">
+                                            <td className="py-4 px-4 fw-bold text-dark">
+                                                {p.policyId}
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="fw-bold text-dark">{p.customerName}</div>
+                                                <div className="small text-muted fw-normal opacity-75">{p.contactInfo}</div>
+                                            </td>
+                                            <td className="py-4 text-center">
+                                                <span className="badge rounded-pill px-3 py-2 text-muted fw-bold" style={{ backgroundColor: '#f0f2f5', fontSize: '0.75rem' }}>
+                                                    {p.policyType}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 text-muted small fw-bold">
+                                                {formatDate(p.createdDate)}
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <div className="progress flex-grow-1" style={{ height: '6px', width: '80px', backgroundColor: '#e9ecef' }}>
+                                                        <div
+                                                            className="progress-bar rounded-pill"
+                                                            style={{ width: `${score}%`, backgroundColor: scoreColor }}
+                                                        ></div>
+                                                    </div>
+                                                    <span className="fw-bold text-dark" style={{ minWidth: '25px' }}>{score}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-4 text-end">
+                                                <button
+                                                    onClick={() => navigate(`/dashboard/${p.policyId}`)}
+                                                    className="btn btn-sm btn-hover-eco fw-bold border-0 px-3 py-2 d-inline-flex align-items-center gap-2"
+                                                    style={{ backgroundColor: '#f8fbf9', color: '#1a5f49', fontSize: '0.85rem', borderRadius: '6px' }}
+                                                >
+                                                    View Report <span style={{ fontSize: '1.1rem', marginTop: '-1px' }}>→</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
                         </tbody>
                     </table>
                 </div>

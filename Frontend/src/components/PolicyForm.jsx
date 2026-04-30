@@ -1,0 +1,542 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { apiService } from '../services/api';
+import EcoSelect from './EcoSelect';
+import clsx from 'clsx';
+
+const PolicyForm = () => {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [previewScore, setPreviewScore] = useState(null);
+
+    const [formData, setFormData] = useState({
+        policyType: 'AUTO',
+        customerName: '',
+        contactInfo: '',
+        // Auto
+        vehicleId: '',
+        vehicleType: 'PETROL',
+        annualMileage: 'MEDIUM',
+        usageType: 'PERSONAL',
+        fuelEfficiency: 'MEDIUM',
+        // Home
+        propertyAddress: '',
+        energyRating: 'C',
+        hasSolarPanels: false,
+        insulationType: 'STANDARD',
+        heatingSystem: 'GAS',
+        waterConservationFeatures: '',
+        // Property
+        propertyType: 'COMMERCIAL',
+        certifications: '',
+        energySystems: 'GRID',
+        wasteManagement: 'BASIC_RECYCLING',
+        buildingAge: 10
+    });
+
+    const [submitError, setSubmitError] = useState(null);
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleTypeChange = (type) => {
+        setFormData(prev => ({ ...prev, policyType: type }));
+    };
+
+    const isStepValid = () => {
+        if (step === 1) {
+            return formData.customerName.trim() !== '' &&
+                formData.contactInfo.trim() !== '' &&
+                formData.contactInfo.includes('@');
+        }
+        if (step === 2) {
+            if (formData.policyType === 'AUTO') return formData.vehicleId.trim() !== '';
+            if (formData.policyType === 'HOME') return formData.propertyAddress.trim() !== '';
+            if (formData.policyType === 'PROPERTY') {
+                return formData.propertyAddress.trim() !== '' &&
+                    formData.buildingAge !== '' &&
+                    formData.buildingAge >= 0;
+            }
+        }
+        return true;
+    };
+
+    const nextStep = async () => {
+        if (!isStepValid()) return;
+        setSubmitError(null);
+
+        if (step === 2) {
+            setLoading(true);
+            try {
+                const res = await apiService.calculatePreview({
+                    policyType: formData.policyType,
+                    ...formData
+                });
+                setPreviewScore(res.data);
+                setStep(3);
+            } catch (err) {
+                console.error("Preview failed", err);
+                setSubmitError("Failed to calculate sustainability score. Please check your connection or backend status.");
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setStep((s) => Math.min(s + 1, 3));
+        }
+    };
+
+    const prevStep = () => {
+        setSubmitError(null);
+        setStep((s) => Math.max(s - 1, 1));
+    };
+
+    const handleFinalize = async () => {
+        setLoading(true);
+        setSubmitError(null);
+        try {
+            const res = await apiService.createPolicy(formData);
+            // Navigate to dashboard of the new policy
+            navigate(`/dashboard/${res.data.policyId}`);
+        } catch (err) {
+            console.error("Creation failed", err);
+            setSubmitError("Failed to create policy. Please ensure the backend is running and all details are correct.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const steps = [
+        { id: 1, name: 'Identity', icon: User },
+        { id: 2, name: 'Policy Details', icon: ShieldCheck },
+        { id: 3, name: 'Impact', icon: Zap },
+    ];
+
+    return (
+        <div className="max-w-4xl mx-auto text-start" style={{ paddingBottom: '150px' }}>
+            {/* Header */}
+            <div className="mb-5">
+                <h2 className="fw-bold text-dark">New Policy Creation</h2>
+                <p className="text-muted">Complete the steps below to generate a sustainability-linked policy.</p>
+            </div>
+
+            {/* Stepper Header */}
+            <div className="mb-5 d-flex justify-content-between position-relative px-4">
+                <div className="position-absolute bg-secondary opacity-10" style={{ top: 22, left: 50, right: 50, height: 2, zIndex: 0 }}></div>
+                <div
+                    className="position-absolute bg-success transition-all duration-500"
+                    style={{
+                        top: 22,
+                        left: 50,
+                        height: 3,
+                        width: `calc((${step - 1} / 2) * (100% - 100px))`,
+                        zIndex: 1
+                    }}
+                ></div>
+
+                {steps.map((s) => (
+                    <div key={s.id} className="text-center position-relative" style={{ zIndex: 2 }}>
+                        <div className={clsx(
+                            "rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 transition-all duration-300",
+                            step >= s.id ? "bg-success text-white shadow" : "bg-white text-muted border border-2"
+                        )} style={{ width: 45, height: 45 }}>
+                            {step > s.id ? <CheckCircle2 size={24} /> : <s.icon size={20} />}
+                        </div>
+                        <span className={clsx("small fw-bold", step >= s.id ? "text-dark" : "text-muted")}>{s.name}</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Form Content */}
+            <div className="min-vh-50 px-5">
+                <AnimatePresence mode="wait">
+                    {/* STEP 1: IDENTITY */}
+                    {step === 1 && (
+                        <motion.div
+                            key="step1"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                        >
+                            <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">1. Customer Identity</h4>
+                            <div className="row mt-2 g-4">
+                                <div className="col-md-6">
+                                    <label className="form-label text-muted fw-bold">Full Name <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        name="customerName"
+                                        value={formData.customerName}
+                                        onChange={handleChange}
+                                        className="form-control form-control-lg bg-light border-0"
+                                        placeholder="e.g. John Green"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label text-muted fw-bold">Email Address <span className="text-danger">*</span></label>
+                                    <input
+                                        type="email"
+                                        name="contactInfo"
+                                        value={formData.contactInfo}
+                                        onChange={handleChange}
+                                        className="form-control form-control-lg bg-light border-0"
+                                        placeholder="john@example.com"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label text-muted fw-bold mb-3">Select Policy Type</label>
+                                    <div className="d-flex gap-3">
+                                        {['AUTO', 'HOME', 'PROPERTY'].map(t => (
+                                            <button
+                                                key={t}
+                                                type="button"
+                                                onClick={() => handleTypeChange(t)}
+                                                className={clsx(
+                                                    "btn px-5 py-2 border-2 fw-bold transition-all",
+                                                    formData.policyType === t ? "btn-success border-success text-white shadow-sm" : "btn-outline-secondary btn-hover-eco opacity-60"
+                                                )}
+                                            >
+                                                {t}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 2: DYNAMIC POLICY DETAILS */}
+                    {step === 2 && (
+                        <motion.div
+                            key="step2"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                        >
+                            <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">2. {formData.policyType} Configuration</h4>
+                            <div className="row g-4">
+                                {formData.policyType === 'AUTO' && (
+                                    <>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Vehicle ID (VIN) <span className="text-danger">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="vehicleId"
+                                                value={formData.vehicleId}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                placeholder="17-character VIN"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Vehicle Type <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="vehicleType"
+                                                value={formData.vehicleType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'ELECTRIC', label: 'Electric' },
+                                                    { value: 'HYBRID', label: 'Hybrid' },
+                                                    { value: 'PETROL', label: 'Petrol' },
+                                                    { value: 'DIESEL', label: 'Diesel' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Annual Mileage <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="annualMileage"
+                                                value={formData.annualMileage}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'LOW', label: 'Low (< 10k km)' },
+                                                    { value: 'MEDIUM', label: 'Medium (10k-20k km)' },
+                                                    { value: 'HIGH', label: 'High (> 20k km)' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Usage Type <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="usageType"
+                                                value={formData.usageType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'PERSONAL', label: 'Personal' },
+                                                    { value: 'BUSINESS', label: 'Business' },
+                                                    { value: 'COMMERCIAL', label: 'Commercial' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Fuel Efficiency <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="fuelEfficiency"
+                                                value={formData.fuelEfficiency}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'HIGH', label: 'High (> 15 km/L)' },
+                                                    { value: 'MEDIUM', label: 'Medium (10-15 km/L)' },
+                                                    { value: 'LOW', label: 'Low (< 10 km/L)' }
+                                                ]}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.policyType === 'HOME' && (
+                                    <>
+                                        <div className="col-12">
+                                            <label className="form-label text-muted fw-bold">Property Address <span className="text-danger">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="propertyAddress"
+                                                value={formData.propertyAddress}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                placeholder="123 Eco Street"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Energy Rating <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="energyRating"
+                                                value={formData.energyRating}
+                                                onChange={handleChange}
+                                                options={['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(r => ({ value: r, label: r }))}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Insulation Type <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="insulationType"
+                                                value={formData.insulationType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'NONE', label: 'None' },
+                                                    { value: 'BASIC', label: 'Basic' },
+                                                    { value: 'STANDARD', label: 'Standard' },
+                                                    { value: 'ADVANCED', label: 'Advanced' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <label className="form-label text-muted fw-bold">Heating System <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="heatingSystem"
+                                                value={formData.heatingSystem}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'ELECTRIC', label: 'Electric Heat Pump' },
+                                                    { value: 'GAS', label: 'Natural Gas' },
+                                                    { value: 'OIL', label: 'Heating Oil' },
+                                                    { value: 'SOLAR', label: 'Solar Thermal' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <label className="form-label text-muted fw-bold">Water Conservation Features</label>
+                                            <textarea
+                                                name="waterConservationFeatures"
+                                                value={formData.waterConservationFeatures}
+                                                onChange={handleChange}
+                                                className="form-control bg-light border-0"
+                                                placeholder="e.g. Rainwater harvesting, greywater recycling"
+                                                rows="2"
+                                            />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <div className="form-check form-switch p-4 bg-light rounded-3 d-flex align-items-center">
+                                                <input
+                                                    className="form-check-input ms-0 me-3"
+                                                    type="checkbox"
+                                                    name="hasSolarPanels"
+                                                    checked={formData.hasSolarPanels}
+                                                    onChange={handleChange}
+                                                    id="solarSwitch"
+                                                    style={{ transform: 'scale(1.5)' }}
+                                                />
+                                                <label className="form-check-label fw-bold mb-0" htmlFor="solarSwitch">Property has active Solar Panels</label>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.policyType === 'PROPERTY' && (
+                                    <>
+                                        <div className="col-12">
+                                            <label className="form-label text-muted fw-bold">Property Address <span className="text-danger">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="propertyAddress"
+                                                value={formData.propertyAddress}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                placeholder="456 Corporate Blvd"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Property Type <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="propertyType"
+                                                value={formData.propertyType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'COMMERCIAL', label: 'Commercial' },
+                                                    { value: 'RESIDENTIAL', label: 'Residential' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Energy System <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="energySystems"
+                                                value={formData.energySystems}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'GRID', label: 'Grid' },
+                                                    { value: 'SOLAR', label: 'Solar' },
+                                                    { value: 'WIND', label: 'Wind' },
+                                                    { value: 'HYBRID', label: 'Hybrid' },
+                                                    { value: 'GEOTHERMAL', label: 'Geothermal' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Waste Management <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="wasteManagement"
+                                                value={formData.wasteManagement}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'NONE', label: 'None' },
+                                                    { value: 'BASIC_RECYCLING', label: 'Basic Recycling' },
+                                                    { value: 'ADVANCED_RECYCLING', label: 'Advanced Recycling' },
+                                                    { value: 'COMPOSTING', label: 'Composting' },
+                                                    { value: 'ZERO_WASTE', label: 'Zero Waste' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Building Age (years) <span className="text-danger">*</span></label>
+                                            <input
+                                                type="number"
+                                                name="buildingAge"
+                                                value={formData.buildingAge}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <label className="form-label text-muted fw-bold">Sustainability Certifications</label>
+                                            <textarea
+                                                name="certifications"
+                                                value={formData.certifications}
+                                                onChange={handleChange}
+                                                className="form-control bg-light border-0"
+                                                placeholder="e.g. LEED Gold, BREEAM Outstanding"
+                                                rows="2"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 3: IMPACT (DYNAMIC PREVIEW) */}
+                    {step === 3 && previewScore && (
+                        <motion.div
+                            key="step3"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="text-center py-4"
+                        >
+                            <div className="mb-4 d-inline-block p-4 rounded-circle bg-mint text-success shadow-sm">
+                                <Zap size={40} strokeWidth={2.5} />
+                            </div>
+                            <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
+                            <p className="text-muted mb-5">Live results based on your {formData.policyType} configuration.</p>
+
+                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400 }}>
+                                <h1 className="display-3 fw-bold text-success mb-0">{previewScore.totalScore}</h1>
+                                <p className="fw-bold text-success text-uppercase tracking-wider">
+                                    {previewScore.totalScore >= 67 ? 'Excellent' : previewScore.totalScore >= 34 ? 'Good' : 'Needs Improvement'}
+                                </p>
+                                <hr className="opacity-20" />
+                                <div className="text-start bg-mint p-3 rounded-3 mt-3">
+                                    <div className="d-flex align-items-center gap-2 mb-2 text-success fw-bold">
+                                        <CheckCircle2 size={18} />
+                                        <span>
+                                            {previewScore.totalScore >= 67 ? '15% Discount Eligible' :
+                                                previewScore.totalScore >= 34 ? '10% Discount Eligible' : 'Standard Rate Applied'}
+                                        </span>
+                                    </div>
+                                    <p className="small text-muted mb-0">
+                                        {previewScore.totalScore >= 60
+                                            ? "Congratulations! Your eco-friendly choices qualify for a green premium reduction."
+                                            : "Increase your score by switching to sustainable alternatives to qualify for discounts."}
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {submitError && (
+                <div className="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-4 mx-auto" style={{ maxWidth: '800px' }}>
+                    <AlertCircle className="text-danger" size={24} />
+                    <div className="fw-bold">{submitError}</div>
+                </div>
+            )}
+
+            {/* Fixed Navigation Buttons */}
+            <div
+                className="position-fixed bottom-0 end-0 border-top d-flex justify-content-between align-items-center"
+                style={{ width: 'calc(100% - 280px)', backgroundColor: 'white', zIndex: 1000, padding: '1.5rem 3rem' }}
+            >
+                <button
+                    onClick={prevStep}
+                    disabled={loading}
+                    className={clsx("btn btn-hover-eco px-4 py-2 fw-bold d-flex align-items-center gap-2", step === 1 && "invisible")}
+                >
+                    <ArrowLeft size={18} /> Back
+                </button>
+                {step < 3 ? (
+                    <button
+                        onClick={nextStep}
+                        disabled={loading || !isStepValid()}
+                        className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                    >
+                        {loading ? <Loader2 className="animate-spin" size={18} /> : <>Continue <ArrowRight size={18} /></>}
+                    </button>
+                ) : (
+                    <button
+                        className="btn btn-eco px-4 py-2 shadow"
+                        disabled={loading || !isStepValid()}
+                        onClick={handleFinalize}
+                    >
+                        {loading ? <Loader2 className="animate-spin me-2" size={18} /> : null}
+                        Create Policy
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default PolicyForm;

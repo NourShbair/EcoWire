@@ -15,7 +15,7 @@ const Sidebar = () => {
             </div>
 
             <nav className="mt-4 flex-grow-1">
-                <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Create Policy</Link>
+                <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>New Policy</Link>
                 <Link to="/policies" className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''}`}>My Policies</Link>
             </nav>
 
