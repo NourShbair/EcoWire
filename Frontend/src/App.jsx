@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import CreatePolicyForm from './components/CreatePolicyForm';
-import Dashboard from './components/Dashboard';
+import PolicyForm from './components/PolicyForm';
+import PolicyDashboard from './components/PolicyDashboard';
 import PoliciesList from './components/PoliciesList';
 import './App.css';
 
@@ -12,9 +12,9 @@ function App() {
         <Sidebar />
         <main className="content-wrapper">
           <Routes>
-            <Route path="/" element={<CreatePolicyForm />} />
+            <Route path="/" element={<PolicyForm />} />
             <Route path="/policies" element={<PoliciesList />} />
-            <Route path="/dashboard/:id" element={<Dashboard />} />
+            <Route path="/dashboard/:policyId" element={<PolicyDashboard />} />
           </Routes>
         </main>
       </div>
