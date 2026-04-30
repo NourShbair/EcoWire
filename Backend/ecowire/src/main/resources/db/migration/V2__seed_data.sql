@@ -65,22 +65,22 @@ INSERT INTO property_policies (property_policy_id, policy_id, property_address, 
 
 -- AUTO eco scores
 INSERT INTO eco_scores (score_id, policy_id, total_score, score_breakdown, calculated_date) VALUES
-('sc000001-0001-0001-0001-000000000001', 'a1b2c3d4-0001-0001-0001-000000000001', 92, '{"vehicleType":30,"annualMileage":25,"usageType":20,"fuelEfficiency":17}', '2024-01-10 09:05:00'),
-('sc000002-0002-0002-0002-000000000002', 'a1b2c3d4-0002-0002-0002-000000000002', 78, '{"vehicleType":22,"annualMileage":20,"usageType":20,"fuelEfficiency":16}', '2024-02-14 10:35:00'),
-('sc000003-0003-0003-0003-000000000003', 'a1b2c3d4-0003-0003-0003-000000000003', 34, '{"vehicleType":8,"annualMileage":5,"usageType":10,"fuelEfficiency":11}',  '2024-03-05 08:20:00'),
-('sc000004-0004-0004-0004-000000000004', 'a1b2c3d4-0004-0004-0004-000000000004', 45, '{"vehicleType":10,"annualMileage":8,"usageType":15,"fuelEfficiency":12}', '2024-04-20 14:05:00'),
-('sc000005-0005-0005-0005-000000000005', 'a1b2c3d4-0005-0005-0005-000000000005', 95, '{"vehicleType":30,"annualMileage":25,"usageType":22,"fuelEfficiency":18}', '2024-05-18 11:50:00'),
+('sc000001-0001-0001-0001-000000000001', 'a1b2c3d4-0001-0001-0001-000000000001', 92, '{"vehicleType":30,"annualMileage":25,"usageType":20,"fuelEfficiency":17}'::jsonb, '2024-01-10 09:05:00'),
+('sc000002-0002-0002-0002-000000000002', 'a1b2c3d4-0002-0002-0002-000000000002', 78, '{"vehicleType":22,"annualMileage":20,"usageType":20,"fuelEfficiency":16}'::jsonb, '2024-02-14 10:35:00'),
+('sc000003-0003-0003-0003-000000000003', 'a1b2c3d4-0003-0003-0003-000000000003', 34, '{"vehicleType":8,"annualMileage":5,"usageType":10,"fuelEfficiency":11}'::jsonb,  '2024-03-05 08:20:00'),
+('sc000004-0004-0004-0004-000000000004', 'a1b2c3d4-0004-0004-0004-000000000004', 45, '{"vehicleType":10,"annualMileage":8,"usageType":15,"fuelEfficiency":12}'::jsonb, '2024-04-20 14:05:00'),
+('sc000005-0005-0005-0005-000000000005', 'a1b2c3d4-0005-0005-0005-000000000005', 95, '{"vehicleType":30,"annualMileage":25,"usageType":22,"fuelEfficiency":18}'::jsonb, '2024-05-18 11:50:00'),
 
 -- HOME eco scores
-('sc000006-0001-0001-0001-000000000006', 'c1d2e3f4-0001-0001-0001-000000000001', 91, '{"energyRating":25,"solarPanels":20,"insulationType":25,"heatingSystem":21}', '2024-01-22 09:35:00'),
-('sc000007-0002-0002-0002-000000000007', 'c1d2e3f4-0002-0002-0002-000000000002', 74, '{"energyRating":20,"solarPanels":20,"insulationType":18,"heatingSystem":16}', '2024-02-28 13:05:00'),
-('sc000008-0003-0003-0003-000000000008', 'c1d2e3f4-0003-0003-0003-000000000003', 38, '{"energyRating":10,"solarPanels":0,"insulationType":12,"heatingSystem":16}',  '2024-03-15 10:05:00'),
-('sc000009-0004-0004-0004-000000000009', 'c1d2e3f4-0004-0004-0004-000000000004', 55, '{"energyRating":15,"solarPanels":0,"insulationType":18,"heatingSystem":22}',  '2024-04-08 16:25:00'),
-('sc000010-0005-0005-0005-000000000010', 'c1d2e3f4-0005-0005-0005-000000000005', 98, '{"energyRating":25,"solarPanels":20,"insulationType":25,"heatingSystem":28}', '2024-06-01 08:05:00'),
+('sc000006-0001-0001-0001-000000000006', 'c1d2e3f4-0001-0001-0001-000000000001', 91, '{"energyRating":25,"solarPanels":20,"insulationType":25,"heatingSystem":21}'::jsonb, '2024-01-22 09:35:00'),
+('sc000007-0002-0002-0002-000000000007', 'c1d2e3f4-0002-0002-0002-000000000002', 74, '{"energyRating":20,"solarPanels":20,"insulationType":18,"heatingSystem":16}'::jsonb, '2024-02-28 13:05:00'),
+('sc000008-0003-0003-0003-000000000008', 'c1d2e3f4-0003-0003-0003-000000000003', 38, '{"energyRating":10,"solarPanels":0,"insulationType":12,"heatingSystem":16}'::jsonb,  '2024-03-15 10:05:00'),
+('sc000009-0004-0004-0004-000000000009', 'c1d2e3f4-0004-0004-0004-000000000004', 55, '{"energyRating":15,"solarPanels":0,"insulationType":18,"heatingSystem":22}'::jsonb,  '2024-04-08 16:25:00'),
+('sc000010-0005-0005-0005-000000000010', 'c1d2e3f4-0005-0005-0005-000000000005', 98, '{"energyRating":25,"solarPanels":20,"insulationType":25,"heatingSystem":28}'::jsonb, '2024-06-01 08:05:00'),
 
 -- PROPERTY eco scores
-('sc000011-0001-0001-0001-000000000011', 'e1f2a3b4-0001-0001-0001-000000000001', 96, '{"propertyType":20,"certifications":25,"energySystems":28,"wasteManagement":23}', '2024-01-30 09:05:00'),
-('sc000012-0002-0002-0002-000000000012', 'e1f2a3b4-0002-0002-0002-000000000002', 82, '{"propertyType":20,"certifications":20,"energySystems":22,"wasteManagement":20}', '2024-02-10 11:05:00'),
-('sc000013-0003-0003-0003-000000000013', 'e1f2a3b4-0003-0003-0003-000000000003', 28, '{"propertyType":10,"certifications":0,"energySystems":10,"wasteManagement":8}',  '2024-03-25 14:35:00'),
-('sc000014-0004-0004-0004-000000000014', 'e1f2a3b4-0004-0004-0004-000000000004', 76, '{"propertyType":20,"certifications":18,"energySystems":20,"wasteManagement":18}', '2024-05-05 10:20:00'),
-('sc000015-0005-0005-0005-000000000015', 'e1f2a3b4-0005-0005-0005-000000000005', 18, '{"propertyType":10,"certifications":0,"energySystems":5,"wasteManagement":3}',   '2024-06-20 09:50:00');
+('sc000011-0001-0001-0001-000000000011', 'e1f2a3b4-0001-0001-0001-000000000001', 96, '{"propertyType":20,"certifications":25,"energySystems":28,"wasteManagement":23}'::jsonb, '2024-01-30 09:05:00'),
+('sc000012-0002-0002-0002-000000000012', 'e1f2a3b4-0002-0002-0002-000000000002', 82, '{"propertyType":20,"certifications":20,"energySystems":22,"wasteManagement":20}'::jsonb, '2024-02-10 11:05:00'),
+('sc000013-0003-0003-0003-000000000013', 'e1f2a3b4-0003-0003-0003-000000000003', 28, '{"propertyType":10,"certifications":0,"energySystems":10,"wasteManagement":8}'::jsonb,  '2024-03-25 14:35:00'),
+('sc000014-0004-0004-0004-000000000014', 'e1f2a3b4-0004-0004-0004-000000000004', 76, '{"propertyType":20,"certifications":18,"energySystems":20,"wasteManagement":18}'::jsonb, '2024-05-05 10:20:00'),
+('sc000015-0005-0005-0005-000000000015', 'e1f2a3b4-0005-0005-0005-000000000005', 18, '{"propertyType":10,"certifications":0,"energySystems":5,"wasteManagement":3}'::jsonb,   '2024-06-20 09:50:00');
