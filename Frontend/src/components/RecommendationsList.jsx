@@ -29,9 +29,17 @@ const RecommendationsList = ({ recommendations = [], policyType }) => {
                                 + {rec.estimatedImprovement} pts
                             </span>
                         </div>
-                        <p className="small text-muted mb-0">
-                            Priority: {rec.priority === 1 ? 'High' : rec.priority === 2 ? 'Medium' : 'Low'}
-                        </p>
+                        <div className="d-flex align-items-center gap-2">
+                            <span className="text-muted small">
+                                Priority: <span className="text-dark fw-bold">{rec.priority === 1 ? 'High' : rec.priority === 2 ? 'Medium' : 'Low'}</span>
+                            </span>
+                            {rec.category && <span className="text-muted opacity-25">|</span>}
+                            {rec.category && (
+                                <span className="text-muted small">
+                                    Category: <span className="text-dark fw-bold">{rec.category}</span>
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             ))}
