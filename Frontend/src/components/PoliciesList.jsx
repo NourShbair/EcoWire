@@ -24,7 +24,9 @@ const PoliciesList = () => {
     const formatDate = (dateStr) => {
         if (!dateStr) return 'N/A';
         const date = new Date(dateStr);
-        return date.toISOString().split('T')[0];
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+               ' ' + 
+               date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     };
 
     const filteredPolicies = policies.filter(p =>
@@ -50,7 +52,7 @@ const PoliciesList = () => {
             </div>
 
             {/* Table Container */}
-            <div className="card border shadow-sm mt-5" style={{ borderRadius: '15px' }}>
+            <div className="card border shadow-sm mt-5" style={{ borderRadius: '15px', overflow: 'hidden' }}>
                 <div className="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 className="fw-bold text-dark mb-0">Policies</h5>
                     <div className="position-relative" style={{ width: '320px' }}>
@@ -95,15 +97,16 @@ const PoliciesList = () => {
                             ) : (
                                 filteredPolicies.map((p) => {
                                     const score = p.ecoScore?.totalScore || 0;
-                                    const scoreColor = score >= 80 ? "#1a5f49" : score >= 50 ? "#ffc107" : "#dc3545";
+                                    const scoreColor = score >= 67 ? "#1a5f49" : score >= 34 ? "#ffc107" : "#dc3545";
 
                                     return (
                                         <tr key={p.policyId} className="border-bottom">
                                             <td className="py-4 px-4 fw-bold text-dark">
                                                 {p.policyId}
                                             </td>
-                                            <td className="py-4 text-muted fw-bold">
-                                                {p.customerName}
+                                            <td className="py-4">
+                                                <div className="fw-bold text-dark">{p.customerName}</div>
+                                                <div className="small text-muted fw-normal opacity-75">{p.contactInfo}</div>
                                             </td>
                                             <td className="py-4 text-center">
                                                 <span className="badge rounded-pill px-3 py-2 text-muted fw-bold" style={{ backgroundColor: '#f0f2f5', fontSize: '0.75rem' }}>
