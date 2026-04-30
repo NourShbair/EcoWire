@@ -6,7 +6,7 @@ import { apiService } from '../services/api';
 import EcoSelect from './EcoSelect';
 import clsx from 'clsx';
 
-const CreatePolicyForm = () => {
+const PolicyForm = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -37,6 +37,8 @@ const CreatePolicyForm = () => {
         buildingAge: 10
     });
 
+    const [submitError, setSubmitError] = useState(null);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -49,7 +51,28 @@ const CreatePolicyForm = () => {
         setFormData(prev => ({ ...prev, policyType: type }));
     };
 
+    const isStepValid = () => {
+        if (step === 1) {
+            return formData.customerName.trim() !== '' &&
+                formData.contactInfo.trim() !== '' &&
+                formData.contactInfo.includes('@');
+        }
+        if (step === 2) {
+            if (formData.policyType === 'AUTO') return formData.vehicleId.trim() !== '';
+            if (formData.policyType === 'HOME') return formData.propertyAddress.trim() !== '';
+            if (formData.policyType === 'PROPERTY') {
+                return formData.propertyAddress.trim() !== '' &&
+                    formData.buildingAge !== '' &&
+                    formData.buildingAge >= 0;
+            }
+        }
+        return true;
+    };
+
     const nextStep = async () => {
+        if (!isStepValid()) return;
+        setSubmitError(null);
+
         if (step === 2) {
             setLoading(true);
             try {
@@ -60,7 +83,8 @@ const CreatePolicyForm = () => {
                 setPreviewScore(res.data);
                 setStep(3);
             } catch (err) {
-                alert("Failed to calculate preview. Check console for details.");
+                console.error("Preview failed", err);
+                setSubmitError("Failed to calculate sustainability score. Please check your connection or backend status.");
             } finally {
                 setLoading(false);
             }
@@ -69,17 +93,21 @@ const CreatePolicyForm = () => {
         }
     };
 
-    const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+    const prevStep = () => {
+        setSubmitError(null);
+        setStep((s) => Math.max(s - 1, 1));
+    };
 
     const handleFinalize = async () => {
         setLoading(true);
+        setSubmitError(null);
         try {
             const res = await apiService.createPolicy(formData);
             // Navigate to dashboard of the new policy
             navigate(`/dashboard/${res.data.policyId}`);
         } catch (err) {
             console.error("Creation failed", err);
-            alert("Failed to create policy. Please check backend logs.");
+            setSubmitError("Failed to create policy. Please ensure the backend is running and all details are correct.");
         } finally {
             setLoading(false);
         }
@@ -140,7 +168,7 @@ const CreatePolicyForm = () => {
                             <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">1. Customer Identity</h4>
                             <div className="row mt-2 g-4">
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted fw-bold">Full Name</label>
+                                    <label className="form-label text-muted fw-bold">Full Name <span className="text-danger">*</span></label>
                                     <input
                                         type="text"
                                         name="customerName"
@@ -152,7 +180,7 @@ const CreatePolicyForm = () => {
                                     />
                                 </div>
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted fw-bold">Email Address</label>
+                                    <label className="form-label text-muted fw-bold">Email Address <span className="text-danger">*</span></label>
                                     <input
                                         type="email"
                                         name="contactInfo"
@@ -198,11 +226,19 @@ const CreatePolicyForm = () => {
                                 {formData.policyType === 'AUTO' && (
                                     <>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Vehicle ID (VIN)</label>
-                                            <input type="text" name="vehicleId" value={formData.vehicleId} onChange={handleChange} className="form-control form-control-lg bg-light border-0" placeholder="17-character VIN" />
+                                            <label className="form-label text-muted fw-bold">Vehicle ID (VIN) <span className="text-danger">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="vehicleId"
+                                                value={formData.vehicleId}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                placeholder="17-character VIN"
+                                                required
+                                            />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Vehicle Type</label>
+                                            <label className="form-label text-muted fw-bold">Vehicle Type <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="vehicleType"
                                                 value={formData.vehicleType}
@@ -216,7 +252,7 @@ const CreatePolicyForm = () => {
                                             />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Annual Mileage</label>
+                                            <label className="form-label text-muted fw-bold">Annual Mileage <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="annualMileage"
                                                 value={formData.annualMileage}
@@ -229,7 +265,20 @@ const CreatePolicyForm = () => {
                                             />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Fuel Efficiency</label>
+                                            <label className="form-label text-muted fw-bold">Usage Type <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="usageType"
+                                                value={formData.usageType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'PERSONAL', label: 'Personal' },
+                                                    { value: 'BUSINESS', label: 'Business' },
+                                                    { value: 'COMMERCIAL', label: 'Commercial' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Fuel Efficiency <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="fuelEfficiency"
                                                 value={formData.fuelEfficiency}
@@ -247,11 +296,19 @@ const CreatePolicyForm = () => {
                                 {formData.policyType === 'HOME' && (
                                     <>
                                         <div className="col-12">
-                                            <label className="form-label text-muted fw-bold">Property Address</label>
-                                            <input type="text" name="propertyAddress" value={formData.propertyAddress} onChange={handleChange} className="form-control form-control-lg bg-light border-0" placeholder="123 Eco Street" />
+                                            <label className="form-label text-muted fw-bold">Property Address <span className="text-danger">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="propertyAddress"
+                                                value={formData.propertyAddress}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                placeholder="123 Eco Street"
+                                                required
+                                            />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Energy Rating</label>
+                                            <label className="form-label text-muted fw-bold">Energy Rating <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="energyRating"
                                                 value={formData.energyRating}
@@ -260,7 +317,7 @@ const CreatePolicyForm = () => {
                                             />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Insulation Type</label>
+                                            <label className="form-label text-muted fw-bold">Insulation Type <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="insulationType"
                                                 value={formData.insulationType}
@@ -274,7 +331,7 @@ const CreatePolicyForm = () => {
                                             />
                                         </div>
                                         <div className="col-md-12">
-                                            <label className="form-label text-muted fw-bold">Heating System</label>
+                                            <label className="form-label text-muted fw-bold">Heating System <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="heatingSystem"
                                                 value={formData.heatingSystem}
@@ -285,6 +342,17 @@ const CreatePolicyForm = () => {
                                                     { value: 'OIL', label: 'Heating Oil' },
                                                     { value: 'SOLAR', label: 'Solar Thermal' }
                                                 ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <label className="form-label text-muted fw-bold">Water Conservation Features</label>
+                                            <textarea
+                                                name="waterConservationFeatures"
+                                                value={formData.waterConservationFeatures}
+                                                onChange={handleChange}
+                                                className="form-control bg-light border-0"
+                                                placeholder="e.g. Rainwater harvesting, greywater recycling"
+                                                rows="2"
                                             />
                                         </div>
                                         <div className="col-md-12">
@@ -307,44 +375,79 @@ const CreatePolicyForm = () => {
                                 {formData.policyType === 'PROPERTY' && (
                                     <>
                                         <div className="col-12">
-                                            <label className="form-label text-muted fw-bold">Property Address</label>
-                                            <input type="text" name="propertyAddress" value={formData.propertyAddress} onChange={handleChange} className="form-control form-control-lg bg-light border-0" placeholder="456 Corporate Blvd" />
+                                            <label className="form-label text-muted fw-bold">Property Address <span className="text-danger">*</span></label>
+                                            <input
+                                                type="text"
+                                                name="propertyAddress"
+                                                value={formData.propertyAddress}
+                                                onChange={handleChange}
+                                                className="form-control form-control-lg bg-light border-0"
+                                                placeholder="456 Corporate Blvd"
+                                                required
+                                            />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Property Type</label>
+                                            <label className="form-label text-muted fw-bold">Property Type <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="propertyType"
                                                 value={formData.propertyType}
                                                 onChange={handleChange}
                                                 options={[
-                                                    { value: 'OFFICE', label: 'Office' },
-                                                    { value: 'RETAIL', label: 'Retail' },
-                                                    { value: 'INDUSTRIAL', label: 'Industrial' },
-                                                    { value: 'COMMERCIAL', label: 'Other Commercial' }
+                                                    { value: 'COMMERCIAL', label: 'Commercial' },
+                                                    { value: 'RESIDENTIAL', label: 'Residential' }
                                                 ]}
                                             />
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-muted fw-bold">Waste Management</label>
+                                            <label className="form-label text-muted fw-bold">Energy System <span className="text-danger">*</span></label>
+                                            <EcoSelect
+                                                name="energySystems"
+                                                value={formData.energySystems}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'GRID', label: 'Grid' },
+                                                    { value: 'SOLAR', label: 'Solar' },
+                                                    { value: 'WIND', label: 'Wind' },
+                                                    { value: 'HYBRID', label: 'Hybrid' },
+                                                    { value: 'GEOTHERMAL', label: 'Geothermal' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Waste Management <span className="text-danger">*</span></label>
                                             <EcoSelect
                                                 name="wasteManagement"
                                                 value={formData.wasteManagement}
                                                 onChange={handleChange}
                                                 options={[
+                                                    { value: 'NONE', label: 'None' },
                                                     { value: 'BASIC_RECYCLING', label: 'Basic Recycling' },
-                                                    { value: 'ADVANCED_SORTING', label: 'Advanced Sorting' },
-                                                    { value: 'ZERO_WASTE', label: 'Zero Waste Program' }
+                                                    { value: 'ADVANCED_RECYCLING', label: 'Advanced Recycling' },
+                                                    { value: 'COMPOSTING', label: 'Composting' },
+                                                    { value: 'ZERO_WASTE', label: 'Zero Waste' }
                                                 ]}
                                             />
                                         </div>
-                                        <div className="col-md-12">
-                                            <label className="form-label text-muted fw-bold">Building Age (years)</label>
+                                        <div className="col-md-6">
+                                            <label className="form-label text-muted fw-bold">Building Age (years) <span className="text-danger">*</span></label>
                                             <input
                                                 type="number"
                                                 name="buildingAge"
                                                 value={formData.buildingAge}
                                                 onChange={handleChange}
                                                 className="form-control form-control-lg bg-light border-0"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <label className="form-label text-muted fw-bold">Sustainability Certifications</label>
+                                            <textarea
+                                                name="certifications"
+                                                value={formData.certifications}
+                                                onChange={handleChange}
+                                                className="form-control bg-light border-0"
+                                                placeholder="e.g. LEED Gold, BREEAM Outstanding"
+                                                rows="2"
                                             />
                                         </div>
                                     </>
@@ -371,15 +474,15 @@ const CreatePolicyForm = () => {
                             <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400 }}>
                                 <h1 className="display-3 fw-bold text-success mb-0">{previewScore.totalScore}</h1>
                                 <p className="fw-bold text-success text-uppercase tracking-wider">
-                                    {previewScore.totalScore >= 70 ? 'Excellent' : previewScore.totalScore >= 40 ? 'Moderate' : 'Needs Improvement'}
+                                    {previewScore.totalScore >= 67 ? 'Excellent' : previewScore.totalScore >= 34 ? 'Good' : 'Needs Improvement'}
                                 </p>
                                 <hr className="opacity-20" />
                                 <div className="text-start bg-mint p-3 rounded-3 mt-3">
                                     <div className="d-flex align-items-center gap-2 mb-2 text-success fw-bold">
                                         <CheckCircle2 size={18} />
                                         <span>
-                                            {previewScore.totalScore >= 80 ? '15% Discount Eligible' :
-                                                previewScore.totalScore >= 60 ? '10% Discount Eligible' : 'Standard Rate Applied'}
+                                            {previewScore.totalScore >= 67 ? '15% Discount Eligible' :
+                                                previewScore.totalScore >= 34 ? '10% Discount Eligible' : 'Standard Rate Applied'}
                                         </span>
                                     </div>
                                     <p className="small text-muted mb-0">
@@ -393,6 +496,13 @@ const CreatePolicyForm = () => {
                     )}
                 </AnimatePresence>
             </div>
+
+            {submitError && (
+                <div className="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-4 mx-auto" style={{ maxWidth: '800px' }}>
+                    <AlertCircle className="text-danger" size={24} />
+                    <div className="fw-bold">{submitError}</div>
+                </div>
+            )}
 
             {/* Fixed Navigation Buttons */}
             <div
@@ -409,7 +519,7 @@ const CreatePolicyForm = () => {
                 {step < 3 ? (
                     <button
                         onClick={nextStep}
-                        disabled={loading}
+                        disabled={loading || !isStepValid()}
                         className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
                     >
                         {loading ? <Loader2 className="animate-spin" size={18} /> : <>Continue <ArrowRight size={18} /></>}
@@ -417,7 +527,7 @@ const CreatePolicyForm = () => {
                 ) : (
                     <button
                         className="btn btn-eco px-4 py-2 shadow"
-                        disabled={loading}
+                        disabled={loading || !isStepValid()}
                         onClick={handleFinalize}
                     >
                         {loading ? <Loader2 className="animate-spin me-2" size={18} /> : null}
@@ -429,4 +539,4 @@ const CreatePolicyForm = () => {
     );
 };
 
-export default CreatePolicyForm;
+export default PolicyForm;
