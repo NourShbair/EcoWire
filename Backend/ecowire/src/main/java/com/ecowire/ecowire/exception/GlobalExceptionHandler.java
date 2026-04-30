@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -117,4 +118,35 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserAlreadyExists(
+            UserAlreadyExistsException ex,
+            HttpServletRequest request) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBadCredentials(
+            BadCredentialsException ex,
+            HttpServletRequest request) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                "Invalid username or password",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
 }
