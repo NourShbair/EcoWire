@@ -37,4 +37,20 @@ public class PolicyController {
         List<PolicyResponseDTO> policies = policyService.getAllPolicies();
         return ResponseEntity.ok(policies);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PolicyResponseDTO> updatePolicy(
+            @PathVariable String id,
+            @RequestBody @Valid PolicyRequestDTO request) {
+        PolicyResponseDTO response = policyService.updatePolicy(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePolicy(
+            @PathVariable String id) {
+        policyService.deletePolicy(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

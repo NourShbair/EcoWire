@@ -2,6 +2,7 @@ package com.ecowire.ecowire.service.impl;
 
 import com.ecowire.ecowire.dto.*;
 import com.ecowire.ecowire.enums.PolicyType;
+import com.ecowire.ecowire.exception.InvalidPolicyTypeException;
 import com.ecowire.ecowire.exception.PolicyNotFoundException;
 import com.ecowire.ecowire.scoring.EcoScoreResult;
 import com.ecowire.ecowire.scoring.ScoreComponent;
@@ -82,6 +83,68 @@ public class PolicyServiceImpl implements PolicyService {
     public List<PolicyResponseDTO> getAllPolicies() {
         return new ArrayList<>(policyStore.values());
     }
+
+    @Override
+    public PolicyResponseDTO updatePolicy(String policyId, PolicyRequestDTO request) {
+        logger.info("Updating policy with ID: {}", policyId);
+
+        // 1. Check policy exists
+        PolicyResponseDTO existing = policyStore.get(policyId);
+        if (existing == null) {
+            throw new PolicyNotFoundException(policyId);
+        }
+
+        // 2. Prevent policyType change
+        if (request.getPolicyType() != null &&
+                !request.getPolicyType().equals(existing.getPolicyType())) {
+            throw new InvalidPolicyTypeException(
+                    "Policy type cannot be changed. Existing type: " + existing.getPolicyType(),
+                    true);
+        }
+
+        // 3. Force same policyType
+        request.setPolicyType(existing.getPolicyType());
+
+        // 4. Extract attributes and recalculate score
+        Map<String, Object> attributes = extractAttributes(request);
+        EcoScoreResult scoreResult = scoringEngine.calculateScore(
+                request.getPolicyType(), attributes);
+
+        // 5. Build updated eco score DTO
+        EcoScoreDTO ecoScoreDTO = buildEcoScoreDTO(policyId, scoreResult, request.getPolicyType());
+
+        // 6. Build updated response preserving original createdDate
+        PolicyResponseDTO updated = new PolicyResponseDTO();
+        updated.setPolicyId(policyId);
+        updated.setPolicyType(existing.getPolicyType());
+        updated.setCustomerName(request.getCustomerName());
+        updated.setContactInfo(request.getContactInfo());
+        updated.setCreatedDate(existing.getCreatedDate());
+        updated.setUpdatedDate(LocalDateTime.now());
+        updated.setEcoScore(ecoScoreDTO);
+
+        // 7. Set type-specific details
+        setTypeSpecificDetails(updated, request);
+
+        // 8. Replace in store
+        policyStore.put(policyId, updated);
+
+        logger.info("Policy updated successfully: {}", policyId);
+        return updated;
+    }
+
+    @Override
+    public void deletePolicy(String policyId) {
+        logger.info("Deleting policy with ID: {}", policyId);
+
+        if (!policyStore.containsKey(policyId)) {
+            throw new PolicyNotFoundException(policyId);
+        }
+
+        policyStore.remove(policyId);
+        logger.info("Policy deleted successfully: {}", policyId);
+    }
+
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
