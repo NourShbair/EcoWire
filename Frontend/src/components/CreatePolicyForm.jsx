@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import { apiService } from '../services/api';
+import EcoSelect from './EcoSelect';
 import clsx from 'clsx';
 
 const CreatePolicyForm = () => {
@@ -126,7 +127,7 @@ const CreatePolicyForm = () => {
             </div>
 
             {/* Form Content */}
-            <div className="min-vh-50">
+            <div className="min-vh-50 px-5">
                 <AnimatePresence mode="wait">
                     {/* STEP 1: IDENTITY */}
                     {step === 1 && (
@@ -202,28 +203,43 @@ const CreatePolicyForm = () => {
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Vehicle Type</label>
-                                            <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="ELECTRIC">Electric</option>
-                                                <option value="HYBRID">Hybrid</option>
-                                                <option value="PETROL">Petrol</option>
-                                                <option value="DIESEL">Diesel</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="vehicleType"
+                                                value={formData.vehicleType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'ELECTRIC', label: 'Electric' },
+                                                    { value: 'HYBRID', label: 'Hybrid' },
+                                                    { value: 'PETROL', label: 'Petrol' },
+                                                    { value: 'DIESEL', label: 'Diesel' }
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Annual Mileage</label>
-                                            <select name="annualMileage" value={formData.annualMileage} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="LOW">Low (&lt; 10k km)</option>
-                                                <option value="MEDIUM">Medium (10k-20k km)</option>
-                                                <option value="HIGH">High (&gt; 20k km)</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="annualMileage"
+                                                value={formData.annualMileage}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'LOW', label: 'Low (< 10k km)' },
+                                                    { value: 'MEDIUM', label: 'Medium (10k-20k km)' },
+                                                    { value: 'HIGH', label: 'High (> 20k km)' }
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Fuel Efficiency</label>
-                                            <select name="fuelEfficiency" value={formData.fuelEfficiency} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="HIGH">High (&gt; 15 km/L)</option>
-                                                <option value="MEDIUM">Medium (10-15 km/L)</option>
-                                                <option value="LOW">Low (&lt; 10 km/L)</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="fuelEfficiency"
+                                                value={formData.fuelEfficiency}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'HIGH', label: 'High (> 15 km/L)' },
+                                                    { value: 'MEDIUM', label: 'Medium (10-15 km/L)' },
+                                                    { value: 'LOW', label: 'Low (< 10 km/L)' }
+                                                ]}
+                                            />
                                         </div>
                                     </>
                                 )}
@@ -236,28 +252,40 @@ const CreatePolicyForm = () => {
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Energy Rating</label>
-                                            <select name="energyRating" value={formData.energyRating} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(r => <option key={r} value={r}>{r}</option>)}
-                                            </select>
+                                            <EcoSelect
+                                                name="energyRating"
+                                                value={formData.energyRating}
+                                                onChange={handleChange}
+                                                options={['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(r => ({ value: r, label: r }))}
+                                            />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Insulation Type</label>
-                                            <select name="insulationType" value={formData.insulationType} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="NONE">None</option>
-                                                <option value="BASIC">Basic</option>
-                                                <option value="STANDARD">Standard</option>
-                                                <option value="ADVANCED">Advanced</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="insulationType"
+                                                value={formData.insulationType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'NONE', label: 'None' },
+                                                    { value: 'BASIC', label: 'Basic' },
+                                                    { value: 'STANDARD', label: 'Standard' },
+                                                    { value: 'ADVANCED', label: 'Advanced' }
+                                                ]}
+                                            />
                                         </div>
-                                        <div className="col-md-6">
+                                        <div className="col-md-12">
                                             <label className="form-label text-muted fw-bold">Heating System</label>
-                                            <select name="heatingSystem" value={formData.heatingSystem} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="GAS">Gas</option>
-                                                <option value="OIL">Oil</option>
-                                                <option value="ELECTRIC">Electric</option>
-                                                <option value="HEAT_PUMP">Heat Pump</option>
-                                                <option value="GEOTHERMAL">Geothermal</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="heatingSystem"
+                                                value={formData.heatingSystem}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'ELECTRIC', label: 'Electric Heat Pump' },
+                                                    { value: 'GAS', label: 'Natural Gas' },
+                                                    { value: 'OIL', label: 'Heating Oil' },
+                                                    { value: 'SOLAR', label: 'Solar Thermal' }
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-md-12">
                                             <div className="form-check form-switch p-4 bg-light rounded-3 d-flex align-items-center">
@@ -284,20 +312,30 @@ const CreatePolicyForm = () => {
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Property Type</label>
-                                            <select name="propertyType" value={formData.propertyType} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="COMMERCIAL">Commercial</option>
-                                                <option value="RESIDENTIAL">Residential</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="propertyType"
+                                                value={formData.propertyType}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'OFFICE', label: 'Office' },
+                                                    { value: 'RETAIL', label: 'Retail' },
+                                                    { value: 'INDUSTRIAL', label: 'Industrial' },
+                                                    { value: 'COMMERCIAL', label: 'Other Commercial' }
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-md-6">
                                             <label className="form-label text-muted fw-bold">Waste Management</label>
-                                            <select name="wasteManagement" value={formData.wasteManagement} onChange={handleChange} className="form-select form-select-lg bg-light border-0">
-                                                <option value="NONE">None</option>
-                                                <option value="BASIC_RECYCLING">Basic Recycling</option>
-                                                <option value="ADVANCED_RECYCLING">Advanced Recycling</option>
-                                                <option value="COMPOSTING">Composting</option>
-                                                <option value="ZERO_WASTE">Zero Waste</option>
-                                            </select>
+                                            <EcoSelect
+                                                name="wasteManagement"
+                                                value={formData.wasteManagement}
+                                                onChange={handleChange}
+                                                options={[
+                                                    { value: 'BASIC_RECYCLING', label: 'Basic Recycling' },
+                                                    { value: 'ADVANCED_SORTING', label: 'Advanced Sorting' },
+                                                    { value: 'ZERO_WASTE', label: 'Zero Waste Program' }
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-md-12">
                                             <label className="form-label text-muted fw-bold">Building Age (years)</label>
@@ -330,7 +368,7 @@ const CreatePolicyForm = () => {
                             <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
                             <p className="text-muted mb-5">Live results based on your {formData.policyType} configuration.</p>
 
-                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto mb-5" style={{ maxWidth: 400 }}>
+                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400 }}>
                                 <h1 className="display-3 fw-bold text-success mb-0">{previewScore.totalScore}</h1>
                                 <p className="fw-bold text-success text-uppercase tracking-wider">
                                     {previewScore.totalScore >= 70 ? 'Excellent' : previewScore.totalScore >= 40 ? 'Moderate' : 'Needs Improvement'}

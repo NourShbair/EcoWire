@@ -41,10 +41,9 @@ const PoliciesList = () => {
                     <h1 className="fw-bold text-dark mb-1" style={{ fontSize: '2.5rem' }}>Policies</h1>
                     <p className="text-muted mb-0">Manage and review your generated ESG policies.</p>
                 </div>
-                <button
+                <button 
                     onClick={() => navigate('/')}
-                    className="btn px-4 py-2 text-white fw-bold d-flex align-items-center gap-2 shadow-sm"
-                    style={{ backgroundColor: '#1a5f49', borderRadius: '8px' }}
+                    className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
                 >
                     <Plus size={20} /> New Policy
                 </button>
