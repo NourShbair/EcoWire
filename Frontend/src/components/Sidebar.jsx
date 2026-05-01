@@ -1,5 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService.js';
+import RoleGuard from './auth/RoleGuard.jsx';
+import { canCreatePolicy } from '../services/permissionService.js';
 import '../styles/Sidebar.css';
 
 const Sidebar = () => {
@@ -25,7 +27,9 @@ const Sidebar = () => {
             </div>
 
             <nav className="mt-4 flex-grow-1">
-                <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>New Policy</Link>
+                <RoleGuard permission={canCreatePolicy}>
+                    <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>New Policy</Link>
+                </RoleGuard>
                 <Link to="/policies" className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''}`}>My Policies</Link>
             </nav>
 

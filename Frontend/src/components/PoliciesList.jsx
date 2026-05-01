@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import RoleGuard from './auth/RoleGuard.jsx';
+import { canCreatePolicy, canEditPolicy, canDeletePolicy } from '../services/permissionService.js';
 
 const PoliciesList = () => {
     const [policies, setPolicies] = useState([]);
@@ -68,12 +70,14 @@ const PoliciesList = () => {
                     <h1 className="fw-bold text-dark mb-1" style={{ fontSize: '2.5rem' }}>Policies</h1>
                     <p className="text-muted mb-0">Manage and review your generated ESG policies.</p>
                 </div>
-                <button
-                    onClick={() => navigate('/')}
-                    className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
-                >
-                    <i className="bi bi-plus-lg fs-5"></i> New Policy
-                </button>
+                <RoleGuard permission={canCreatePolicy}>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                    >
+                        <i className="bi bi-plus-lg fs-5"></i> New Policy
+                    </button>
+                </RoleGuard>
             </div>
 
             {/* Table Container */}
@@ -164,27 +168,31 @@ const PoliciesList = () => {
                                                     >
                                                         <i className="bi bi-eye-fill"></i>
                                                     </button>
-                                                    <button
-                                                        onClick={() => navigate(`/edit/${p.policyId}`)}
-                                                        className="btn btn-sm text-success btn-hover-eco"
-                                                        style={{ width: '36px', height: '36px' }}
-                                                        title="Edit Policy"
-                                                    >
-                                                        <i className="bi bi-pencil-square"></i>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(p)}
-                                                        disabled={deletingId === p.policyId}
-                                                        className="btn btn-sm btn-outline-danger border-0 p-2 d-inline-flex align-items-center justify-content-center"
-                                                        style={{ borderRadius: '6px', width: '36px', height: '36px' }}
-                                                        title="Delete Policy"
-                                                    >
-                                                        {deletingId === p.policyId ? (
-                                                            <div className="spinner-border spinner-border-sm" role="status"></div>
-                                                        ) : (
-                                                            <i className="bi bi-trash"></i>
-                                                        )}
-                                                    </button>
+                                                    <RoleGuard permission={canEditPolicy}>
+                                                        <button
+                                                            onClick={() => navigate(`/edit/${p.policyId}`)}
+                                                            className="btn btn-sm text-success btn-hover-eco"
+                                                            style={{ width: '36px', height: '36px' }}
+                                                            title="Edit Policy"
+                                                        >
+                                                            <i className="bi bi-pencil-square"></i>
+                                                        </button>
+                                                    </RoleGuard>
+                                                    <RoleGuard permission={canDeletePolicy}>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(p)}
+                                                            disabled={deletingId === p.policyId}
+                                                            className="btn btn-sm btn-outline-danger border-0 p-2 d-inline-flex align-items-center justify-content-center"
+                                                            style={{ borderRadius: '6px', width: '36px', height: '36px' }}
+                                                            title="Delete Policy"
+                                                        >
+                                                            {deletingId === p.policyId ? (
+                                                                <div className="spinner-border spinner-border-sm" role="status"></div>
+                                                            ) : (
+                                                                <i className="bi bi-trash"></i>
+                                                            )}
+                                                        </button>
+                                                    </RoleGuard>
                                                 </div>
                                             </td>
                                         </tr>
