@@ -82,3 +82,7 @@ Backend/ecowire/.gradle/
 
 # Spring Boot packaged app
 Backend/ecowire/target/
+
+
+.kiro
+.vscode
