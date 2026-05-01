@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Loader2, Trash2 } from 'lucide-react';
 
 const PoliciesList = () => {
     const [policies, setPolicies] = useState([]);
@@ -50,9 +49,9 @@ const PoliciesList = () => {
     const formatDate = (dateStr) => {
         if (!dateStr) return 'N/A';
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
-               ' ' + 
-               date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+            ' ' +
+            date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     };
 
     const filteredPolicies = policies.filter(p =>
@@ -69,11 +68,11 @@ const PoliciesList = () => {
                     <h1 className="fw-bold text-dark mb-1" style={{ fontSize: '2.5rem' }}>Policies</h1>
                     <p className="text-muted mb-0">Manage and review your generated ESG policies.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => navigate('/')}
                     className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
                 >
-                    <Plus size={20} /> New Policy
+                    <i className="bi bi-plus-lg fs-5"></i> New Policy
                 </button>
             </div>
 
@@ -82,7 +81,7 @@ const PoliciesList = () => {
                 <div className="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 className="fw-bold text-dark mb-0">Policies</h5>
                     <div className="position-relative" style={{ width: '320px' }}>
-                        <Search className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" size={18} />
+                        <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                         <input
                             type="text"
                             className="form-control ps-5 border-0 bg-light py-2"
@@ -110,7 +109,9 @@ const PoliciesList = () => {
                             {loading ? (
                                 <tr>
                                     <td colSpan="6" className="text-center py-5">
-                                        <Loader2 size={40} className="animate-spin text-success mx-auto mb-2" />
+                                        <div className="spinner-border text-success mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                        </div>
                                         <p className="text-muted">Loading policies...</p>
                                     </td>
                                 </tr>
@@ -157,10 +158,19 @@ const PoliciesList = () => {
                                                 <div className="d-flex justify-content-end align-items-center gap-2">
                                                     <button
                                                         onClick={() => navigate(`/dashboard/${p.policyId}`)}
-                                                        className="btn btn-sm btn-hover-eco fw-bold border-0 px-3 py-2 d-inline-flex align-items-center gap-2"
-                                                        style={{ backgroundColor: '#f8fbf9', color: '#1a5f49', fontSize: '0.85rem', borderRadius: '6px' }}
+                                                        className="btn btn-sm text-success btn-hover-eco"
+                                                        style={{ width: '36px', height: '36px' }}
+                                                        title="View Policy"
                                                     >
-                                                        View Report <span style={{ fontSize: '1.1rem', marginTop: '-1px' }}>→</span>
+                                                        <i className="bi bi-eye-fill"></i>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => navigate(`/edit/${p.policyId}`)}
+                                                        className="btn btn-sm text-success btn-hover-eco"
+                                                        style={{ width: '36px', height: '36px' }}
+                                                        title="Edit Policy"
+                                                    >
+                                                        <i className="bi bi-pencil-square"></i>
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(p)}
@@ -170,9 +180,9 @@ const PoliciesList = () => {
                                                         title="Delete Policy"
                                                     >
                                                         {deletingId === p.policyId ? (
-                                                            <Loader2 size={16} className="animate-spin" />
+                                                            <div className="spinner-border spinner-border-sm" role="status"></div>
                                                         ) : (
-                                                            <Trash2 size={16} />
+                                                            <i className="bi bi-trash"></i>
                                                         )}
                                                     </button>
                                                 </div>
@@ -193,30 +203,32 @@ const PoliciesList = () => {
                         <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '20px' }}>
                             <div className="modal-body p-5 text-center">
                                 <div className="mb-4 text-danger">
-                                    <Trash2 size={64} className="opacity-75" />
+                                    <i className="bi bi-trash fs-1 opacity-75"></i>
                                 </div>
                                 <h3 className="fw-bold text-dark mb-3">Delete Policy?</h3>
                                 <p className="text-muted mb-4">
-                                    Are you sure you want to delete the policy for <span className="fw-bold text-dark">{policyToDelete?.customerName}</span>? 
+                                    Are you sure you want to delete the policy for <span className="fw-bold text-dark">{policyToDelete?.customerName}</span>?
                                     <br />This action cannot be undone.
                                 </p>
                                 <div className="d-flex gap-3 justify-content-center">
-                                    <button 
-                                        type="button" 
-                                        className="btn btn-light px-4 py-2 fw-bold text-muted border-0" 
+                                    <button
+                                        type="button"
+                                        className="btn btn-light px-4 py-2 fw-bold text-muted border-0"
                                         style={{ borderRadius: '10px' }}
                                         onClick={() => setShowDeleteModal(false)}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         className="btn btn-danger px-4 py-2 fw-bold d-flex align-items-center gap-2"
                                         style={{ borderRadius: '10px' }}
                                         onClick={confirmDelete}
                                         disabled={!!deletingId}
                                     >
-                                        {deletingId ? <Loader2 size={18} className="animate-spin" /> : 'Delete Policy'}
+                                        {deletingId ? (
+                                            <div className="spinner-border spinner-border-sm" role="status"></div>
+                                        ) : 'Delete Policy'}
                                     </button>
                                 </div>
                             </div>

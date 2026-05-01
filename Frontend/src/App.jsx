@@ -13,6 +13,7 @@ function App() {
         <main className="content-wrapper">
           <Routes>
             <Route path="/" element={<PolicyForm />} />
+            <Route path="/edit/:policyId" element={<PolicyForm />} />
             <Route path="/policies" element={<PoliciesList />} />
             <Route path="/dashboard/:policyId" element={<PolicyDashboard />} />
           </Routes>

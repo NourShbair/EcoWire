@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiService } from '../services/api';
 import EcoSelect from './EcoSelect';
 import clsx from 'clsx';
 
 const PolicyForm = () => {
     const navigate = useNavigate();
+    const { policyId } = useParams();
+    const isEditMode = !!policyId;
+
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [fetchingData, setFetchingData] = useState(false);
     const [previewScore, setPreviewScore] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -39,6 +42,38 @@ const PolicyForm = () => {
 
     const [submitError, setSubmitError] = useState(null);
 
+    useEffect(() => {
+        if (isEditMode) {
+            fetchPolicyToEdit();
+        }
+    }, [policyId]);
+
+    const fetchPolicyToEdit = async () => {
+        setFetchingData(true);
+        setSubmitError(null);
+        try {
+            const res = await apiService.getPolicyDetails(policyId);
+            const data = res.data;
+
+            // Map backend structure to flat form state
+            const mappedData = {
+                policyType: data.policyType,
+                customerName: data.customerName,
+                contactInfo: data.contactInfo,
+                ...(data.autoDetails || {}),
+                ...(data.homeDetails || {}),
+                ...(data.propertyDetails || {})
+            };
+
+            setFormData(prev => ({ ...prev, ...mappedData }));
+        } catch (err) {
+            console.error("Failed to fetch policy for edit", err);
+            setSubmitError("Failed to load policy details. Please check the backend connection.");
+        } finally {
+            setFetchingData(false);
+        }
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -48,6 +83,7 @@ const PolicyForm = () => {
     };
 
     const handleTypeChange = (type) => {
+        if (isEditMode) return; // Cannot change type in edit mode
         setFormData(prev => ({ ...prev, policyType: type }));
     };
 
@@ -61,7 +97,7 @@ const PolicyForm = () => {
             if (formData.policyType === 'AUTO') return formData.vehicleId.trim() !== '';
             if (formData.policyType === 'HOME') return formData.propertyAddress.trim() !== '';
             if (formData.policyType === 'PROPERTY') {
-                return formData.propertyAddress.trim() !== '' &&
+                return (formData.propertyAddress || "").trim() !== '' &&
                     formData.buildingAge !== '' &&
                     formData.buildingAge >= 0;
             }
@@ -98,33 +134,55 @@ const PolicyForm = () => {
         setStep((s) => Math.max(s - 1, 1));
     };
 
+    const handleBack = () => {
+        if (step === 1) {
+            navigate('/policies');
+        } else {
+            prevStep();
+        }
+    };
+
     const handleFinalize = async () => {
         setLoading(true);
         setSubmitError(null);
         try {
-            const res = await apiService.createPolicy(formData);
-            // Navigate to dashboard of the new policy
-            navigate(`/dashboard/${res.data.policyId}`);
+            if (isEditMode) {
+                await apiService.updatePolicy(policyId, formData);
+                navigate(`/dashboard/${policyId}`);
+            } else {
+                const res = await apiService.createPolicy(formData);
+                navigate(`/dashboard/${res.data.policyId}`);
+            }
         } catch (err) {
-            console.error("Creation failed", err);
-            setSubmitError("Failed to create policy. Please ensure the backend is running and all details are correct.");
+            console.error("Submission failed", err);
+            setSubmitError(`Failed to ${isEditMode ? 'update' : 'create'} policy. Please ensure the backend is running.`);
         } finally {
             setLoading(false);
         }
     };
 
     const steps = [
-        { id: 1, name: 'Identity', icon: User },
-        { id: 2, name: 'Policy Details', icon: ShieldCheck },
-        { id: 3, name: 'Impact', icon: Zap },
+        { id: 1, name: 'Identity', icon: 'bi-person' },
+        { id: 2, name: 'Policy Details', icon: 'bi-shield-check' },
+        { id: 3, name: 'Impact', icon: 'bi-lightning-charge' },
     ];
 
     return (
         <div className="max-w-4xl mx-auto text-start" style={{ paddingBottom: '150px' }}>
             {/* Header */}
             <div className="mb-5">
-                <h2 className="fw-bold text-dark">New Policy Creation</h2>
-                <p className="text-muted">Complete the steps below to generate a sustainability-linked policy.</p>
+                <button
+                    onClick={handleBack}
+                    className="btn btn-link text-decoration-none text-muted mb-3 d-flex align-items-center gap-2 btn-hover-eco fw-bold"
+                >
+                    <i className="bi bi-arrow-left"></i> {step === 1 ? 'Back to Policies' : 'Back to Previous Step'}
+                </button>
+                <h2 className="fw-bold text-dark">{isEditMode ? 'Edit Existing Policy' : 'New Policy Creation'}</h2>
+                <p className="text-muted">
+                    {isEditMode
+                        ? `Updating details for policy ID: ${policyId}`
+                        : 'Complete the steps below to generate a sustainability-linked policy.'}
+                </p>
             </div>
 
             {/* Stepper Header */}
@@ -147,7 +205,7 @@ const PolicyForm = () => {
                             "rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 transition-all duration-300",
                             step >= s.id ? "bg-success text-white shadow" : "bg-white text-muted border border-2"
                         )} style={{ width: 45, height: 45 }}>
-                            {step > s.id ? <CheckCircle2 size={24} /> : <s.icon size={20} />}
+                            {step > s.id ? <i className="bi bi-check-circle fs-4"></i> : <i className={`bi ${s.icon} fs-5`}></i>}
                         </div>
                         <span className={clsx("small fw-bold", step >= s.id ? "text-dark" : "text-muted")}>{s.name}</span>
                     </div>
@@ -155,7 +213,14 @@ const PolicyForm = () => {
             </div>
 
             {/* Form Content */}
-            <div className="min-vh-50 px-5">
+            <div className="min-vh-50 px-5 position-relative">
+                {fetchingData && (
+                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white opacity-75" style={{ zIndex: 10 }}>
+                        <div className="spinner-border text-success mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+                        <h5 className="fw-bold text-dark">Loading Policy Data...</h5>
+                    </div>
+                )}
+
                 <AnimatePresence mode="wait">
                     {/* STEP 1: IDENTITY */}
                     {step === 1 && (
@@ -192,16 +257,21 @@ const PolicyForm = () => {
                                     />
                                 </div>
                                 <div className="col-12">
-                                    <label className="form-label text-muted fw-bold mb-3">Select Policy Type</label>
+                                    <label className={clsx("form-label text-muted fw-bold mb-3", isEditMode && "opacity-50")}>
+                                        Select Policy Type {isEditMode && <span className="small fw-normal">(Cannot be changed after creation)</span>}
+                                    </label>
                                     <div className="d-flex gap-3">
                                         {['AUTO', 'HOME', 'PROPERTY'].map(t => (
                                             <button
                                                 key={t}
                                                 type="button"
                                                 onClick={() => handleTypeChange(t)}
+                                                disabled={isEditMode}
                                                 className={clsx(
                                                     "btn px-5 py-2 border-2 fw-bold transition-all",
-                                                    formData.policyType === t ? "btn-success border-success text-white shadow-sm" : "btn-outline-secondary btn-hover-eco opacity-60"
+                                                    formData.policyType === t ? "btn-success border-success text-white shadow-sm" : "btn-outline-secondary btn-hover-eco opacity-60",
+                                                    isEditMode && formData.policyType !== t && "opacity-25",
+                                                    isEditMode && "cursor-not-allowed"
                                                 )}
                                             >
                                                 {t}
@@ -466,7 +536,7 @@ const PolicyForm = () => {
                             className="text-center py-4"
                         >
                             <div className="mb-4 d-inline-block p-4 rounded-circle bg-mint text-success shadow-sm">
-                                <Zap size={40} strokeWidth={2.5} />
+                                <i className="bi bi-lightning-charge fs-1"></i>
                             </div>
                             <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
                             <p className="text-muted mb-5">Live results based on your {formData.policyType} configuration.</p>
@@ -479,7 +549,7 @@ const PolicyForm = () => {
                                 <hr className="opacity-20" />
                                 <div className="text-start bg-mint p-3 rounded-3 mt-3">
                                     <div className="d-flex align-items-center gap-2 mb-2 text-success fw-bold">
-                                        <CheckCircle2 size={18} />
+                                        <i className="bi bi-check-circle"></i>
                                         <span>
                                             {previewScore.totalScore >= 67 ? '15% Discount Eligible' :
                                                 previewScore.totalScore >= 34 ? '10% Discount Eligible' : 'Standard Rate Applied'}
@@ -499,30 +569,32 @@ const PolicyForm = () => {
 
             {submitError && (
                 <div className="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-4 mx-auto" style={{ maxWidth: '800px' }}>
-                    <AlertCircle className="text-danger" size={24} />
+                    <i className="bi bi-exclamation-circle text-danger fs-4"></i>
                     <div className="fw-bold">{submitError}</div>
                 </div>
             )}
 
+            {/* Fixed Navigation Buttons */}
             {/* Fixed Navigation Buttons */}
             <div
                 className="position-fixed bottom-0 end-0 border-top d-flex justify-content-between align-items-center"
                 style={{ width: 'calc(100% - 280px)', backgroundColor: 'white', zIndex: 1000, padding: '1.5rem 3rem' }}
             >
                 <button
-                    onClick={prevStep}
+                    onClick={() => navigate('/policies')}
                     disabled={loading}
-                    className={clsx("btn btn-hover-eco px-4 py-2 fw-bold d-flex align-items-center gap-2", step === 1 && "invisible")}
+                    className="btn btn-hover-eco text-muted fw-bold px-4 py-2"
                 >
-                    <ArrowLeft size={18} /> Back
+                    Cancel
                 </button>
+
                 {step < 3 ? (
                     <button
                         onClick={nextStep}
                         disabled={loading || !isStepValid()}
                         className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
                     >
-                        {loading ? <Loader2 className="animate-spin" size={18} /> : <>Continue <ArrowRight size={18} /></>}
+                        {loading ? <div className="spinner-border spinner-border-sm" role="status"></div> : <>Continue <i className="bi bi-arrow-right"></i></>}
                     </button>
                 ) : (
                     <button
@@ -530,8 +602,8 @@ const PolicyForm = () => {
                         disabled={loading || !isStepValid()}
                         onClick={handleFinalize}
                     >
-                        {loading ? <Loader2 className="animate-spin me-2" size={18} /> : null}
-                        Create Policy
+                        {loading ? <div className="spinner-border spinner-border-sm me-2" role="status"></div> : null}
+                        {isEditMode ? 'Update Policy' : 'Create Policy'}
                     </button>
                 )}
             </div>

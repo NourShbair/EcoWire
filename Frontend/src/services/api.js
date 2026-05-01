@@ -31,5 +31,6 @@ export const apiService = {
     getScoreBreakdown: (id) => api.get(`policies/${id}/ecoscore`),
     getRecommendations: (id) => api.get(`policies/${id}/recommendations`),
     createPolicy: (data) => api.post('policies', data),
-    deletePolicy: (id) => api.delete(`policies/${id}`)
+    deletePolicy: (id) => api.delete(`policies/${id}`),
+    updatePolicy: (id, data) => api.put(`policies/${id}`, data)
 };
