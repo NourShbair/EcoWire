@@ -1,12 +1,11 @@
 import React from 'react';
-import { Activity } from 'lucide-react';
 
 const ScoreBreakdown = ({ breakdownItems = [] }) => {
     return (
         <div className="p-4 bg-white shadow-sm border rounded-4">
             <div className="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                <Activity size={20} className="text-success" />
-                <h6 className="fw-bold mb-0">Sustainability Breakdown</h6>
+                <i className="bi bi-activity text-success fs-5"></i>
+                <h6 className="fw-bold mb-0 text-dark">Sustainability Breakdown</h6>
             </div>
             <div className="d-flex flex-column gap-4 mt-4 px-2">
                 {breakdownItems.length > 0 ? breakdownItems.map((item, idx) => {

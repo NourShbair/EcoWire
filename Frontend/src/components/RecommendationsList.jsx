@@ -1,10 +1,8 @@
-import { Lightbulb, CheckCircle2 } from 'lucide-react';
-
 const RecommendationsList = ({ recommendations = [], policyType }) => {
     if (!recommendations || recommendations.length === 0) {
         return (
             <div className="p-4 text-center bg-light rounded-4 border border-dashed">
-                <CheckCircle2 className="mx-auto mb-2 text-success" size={32} />
+                <i className="bi bi-check-circle text-success fs-1 mb-2 d-block"></i>
                 <h6 className="fw-bold text-dark">Maximum Efficiency Reached</h6>
                 <p className="small text-muted mb-0">Your {policyType} policy is already highly sustainable. No further improvements needed!</p>
             </div>
@@ -20,7 +18,7 @@ const RecommendationsList = ({ recommendations = [], policyType }) => {
                     style={{ borderLeft: '4px solid #4caf50 !important' }}
                 >
                     <div className="bg-mint p-2 rounded-circle text-success">
-                        <Lightbulb size={20} />
+                        <i className="bi bi-lightbulb fs-5"></i>
                     </div>
                     <div className="flex-grow-1">
                         <div className="d-flex justify-content-between align-items-center mb-1">

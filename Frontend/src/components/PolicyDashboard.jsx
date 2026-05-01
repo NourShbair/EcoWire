@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Leaf, Shield, CheckCircle2, TrendingUp, ArrowLeft, Activity, Loader2, AlertCircle } from 'lucide-react';
 import { apiService } from '../services/api';
 import RecommendationsList from './RecommendationsList';
 import ScoreCard from './ScoreCard';
@@ -15,33 +14,29 @@ const PolicyDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Helper to format labels (e.g., annualMileage -> Annual Mileage)
     const formatLabel = (key) => {
         if (!key) return '';
-        
-        // Handle all-caps Enums (e.g., ELECTRIC -> Electric)
+
         if (key === key.toUpperCase()) {
             return key.charAt(0) + key.slice(1).toLowerCase().replace(/_/g, ' ');
         }
 
         return key
-            .replace(/([A-Z])/g, ' $1') // Add space before caps
-            .replace(/_/g, ' ') // Replace underscores with spaces
-            .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/_/g, ' ')
+            .replace(/^./, str => str.toUpperCase())
             .trim();
     };
-
-    // Helper to get all policy-specific attributes
     const getPolicyDetails = () => {
         if (!policy) return [];
         const details = [];
         const source = policy.autoDetails || policy.homeDetails || policy.propertyDetails;
-        
+
         if (source) {
             Object.entries(source).forEach(([key, value]) => {
                 if (key.toLowerCase().includes('id') || key.toLowerCase().includes('policy')) return;
                 if (value === null || value === undefined || value === '') return;
-                
+
                 details.push({
                     label: formatLabel(key),
                     value: typeof value === 'boolean' ? (value ? 'Yes' : 'No') : formatLabel(String(value))
@@ -74,7 +69,7 @@ const PolicyDashboard = () => {
     if (loading) {
         return (
             <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
-                <Loader2 size={48} className="animate-spin text-success mb-3" />
+                <div className="spinner-border text-success mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
                 <h5 className="text-muted fw-bold">Analyzing Sustainability Data...</h5>
             </div>
         );
@@ -83,10 +78,10 @@ const PolicyDashboard = () => {
     if (error || !policy) {
         return (
             <div className="container py-5 text-center">
-                <AlertCircle size={64} className="text-danger mb-4" />
+                <i className="bi bi-exclamation-circle text-danger fs-1 mb-4"></i>
                 <h2 className="fw-bold text-dark">{error || "Policy Not Found"}</h2>
-                <button onClick={() => navigate('/policies')} className="btn btn-eco mt-4 px-4 py-2">
-                    <ArrowLeft size={18} className="me-2" /> Back to List
+                <button onClick={() => navigate('/policies')} className="btn btn-eco mt-4 px-4 py-2 d-inline-flex align-items-center gap-2">
+                    <i className="bi bi-arrow-left"></i> Back to List
                 </button>
             </div>
         );
@@ -116,7 +111,7 @@ const PolicyDashboard = () => {
                 className="btn btn-link btn-hover-eco text-muted text-decoration-none p-2 px-3 mb-4 d-flex align-items-center gap-2 fw-bold transition-all"
                 style={{ marginLeft: '-0.75rem', borderRadius: '8px' }}
             >
-                <ArrowLeft size={16} /> Back to Policies
+                <i className="bi bi-arrow-left"></i> Back to Policies
             </button>
 
             <div className="d-flex justify-content-between align-items-start mb-4 pb-4 border-bottom">
@@ -125,15 +120,15 @@ const PolicyDashboard = () => {
                     <p className="text-muted mb-0 small">Policy ID: <code className="text-success fw-bold">{policy.policyId}</code></p>
                     <p className="text-muted mb-0 small mt-1">
                         Issued On: <span className="fw-bold">
-                            {new Date(policy.createdDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} 
-                            {' '} 
+                            {new Date(policy.createdDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            {' '}
                             {new Date(policy.createdDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </p>
                 </div>
                 <div className="d-flex align-items-center gap-3">
-                    <div className="bg-light p-3 rounded-circle text-success">
-                        <Shield size={32} />
+                    <div className=" text-success">
+                        <i className="bi bi-shield-check fs-2"></i>
                     </div>
                     <div className="text-start">
                         <h3 className="fw-bold text-dark mb-1">{policy.customerName}</h3>
@@ -184,8 +179,8 @@ const PolicyDashboard = () => {
 
                     {/* Recommendations Section */}
                     <div className="p-4 bg-white shadow-sm border rounded-4 flex-grow-1" style={{ backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f8fbf9)' }}>
-                        <h6 className="fw-bold mb-4 d-flex align-items-center gap-2">
-                            <Activity size={18} className="text-success" />
+                        <h6 className="fw-bold mb-4 d-flex align-items-center gap-2 text-dark">
+                            <i className="bi bi-activity text-success"></i>
                             Sustainability Recommendations
                         </h6>
                         <RecommendationsList

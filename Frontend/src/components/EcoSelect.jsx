@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 
 const EcoSelect = ({ name, value, options, onChange }) => {
@@ -37,11 +36,10 @@ const EcoSelect = ({ name, value, options, onChange }) => {
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span className="text-dark fw-medium">{selectedOption.label}</span>
-                <ChevronDown
-                    size={18}
-                    className="text-muted transition-all"
-                    style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                />
+                <i 
+                    className="bi bi-chevron-down text-muted transition-all"
+                    style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}
+                ></i>
             </button>
             <ul
                 className={clsx("dropdown-menu w-100 shadow-lg border-0 mt-1 py-2", isOpen && "show")}

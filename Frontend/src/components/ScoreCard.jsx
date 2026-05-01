@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, TrendingUp } from 'lucide-react';
 
 const CircularGauge = ({ score }) => {
     const radius = 70;
@@ -62,7 +61,7 @@ const ScoreCard = ({ score, status, discount, policyType }) => {
                 </div>
 
                 <div className="d-inline-flex align-items-center justify-content-center gap-2 bg-mint text-success px-4 py-2 rounded-pill mb-4 mt-3 shadow-sm border border-success border-opacity-10">
-                    <Leaf size={18} />
+                    <i className="bi bi-leaf"></i>
                     <span className="fw-bold">{status} Rating</span>
                 </div>
 
@@ -70,7 +69,7 @@ const ScoreCard = ({ score, status, discount, policyType }) => {
 
                 <div className="text-start bg-light p-4 rounded-4 border">
                     <div className="d-flex align-items-center gap-2 mb-2 text-success">
-                        <TrendingUp size={20} />
+                        <i className="bi bi-graph-up fs-5"></i>
                         <h6 className="fw-bold mb-0">Premium Impact</h6>
                     </div>
                     <p className="mb-0 text-dark fw-bold fs-5">{discount}</p>
