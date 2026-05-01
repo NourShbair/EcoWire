@@ -11,6 +11,10 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
+        const token = localStorage.getItem('ecowire_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => Promise.reject(error)
@@ -20,6 +24,12 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         console.error('API Error:', error.response?.data || error.message);
+        if (error.response?.status === 401) {
+            localStorage.removeItem('ecowire_token');
+            localStorage.removeItem('ecowire_role');
+            localStorage.removeItem('ecowire_username');
+            window.location.href = '/login';
+        }
         return Promise.reject(error);
     }
 );
@@ -34,3 +44,5 @@ export const apiService = {
     deletePolicy: (id) => api.delete(`policies/${id}`),
     updatePolicy: (id, data) => api.put(`policies/${id}`, data)
 };
+
+export default api;
