@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { User, ShieldCheck, Zap, ArrowRight, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiService } from '../services/api';
 import EcoSelect from './EcoSelect';
 import clsx from 'clsx';

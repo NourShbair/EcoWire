@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, Trash2 } from 'lucide-react';
 
 const PoliciesList = () => {
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [policyToDelete, setPolicyToDelete] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
@@ -15,6 +18,29 @@ const PoliciesList = () => {
             .then(res => setPolicies(res.data))
             .catch(err => console.error("List fetch failed", err))
             .finally(() => setLoading(false));
+    };
+
+    const handleDeleteClick = (policy) => {
+        setPolicyToDelete(policy);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!policyToDelete) return;
+
+        const id = policyToDelete.policyId;
+        setDeletingId(id);
+        try {
+            await apiService.deletePolicy(id);
+            setPolicies(prev => prev.filter(p => p.policyId !== id));
+            setShowDeleteModal(false);
+            setPolicyToDelete(null);
+        } catch (err) {
+            console.error("Delete failed", err);
+            alert("Failed to delete policy. Please try again.");
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     useEffect(() => {
@@ -128,13 +154,28 @@ const PoliciesList = () => {
                                                 </div>
                                             </td>
                                             <td className="py-4 px-4 text-end">
-                                                <button
-                                                    onClick={() => navigate(`/dashboard/${p.policyId}`)}
-                                                    className="btn btn-sm btn-hover-eco fw-bold border-0 px-3 py-2 d-inline-flex align-items-center gap-2"
-                                                    style={{ backgroundColor: '#f8fbf9', color: '#1a5f49', fontSize: '0.85rem', borderRadius: '6px' }}
-                                                >
-                                                    View Report <span style={{ fontSize: '1.1rem', marginTop: '-1px' }}>→</span>
-                                                </button>
+                                                <div className="d-flex justify-content-end align-items-center gap-2">
+                                                    <button
+                                                        onClick={() => navigate(`/dashboard/${p.policyId}`)}
+                                                        className="btn btn-sm btn-hover-eco fw-bold border-0 px-3 py-2 d-inline-flex align-items-center gap-2"
+                                                        style={{ backgroundColor: '#f8fbf9', color: '#1a5f49', fontSize: '0.85rem', borderRadius: '6px' }}
+                                                    >
+                                                        View Report <span style={{ fontSize: '1.1rem', marginTop: '-1px' }}>→</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteClick(p)}
+                                                        disabled={deletingId === p.policyId}
+                                                        className="btn btn-sm btn-outline-danger border-0 p-2 d-inline-flex align-items-center justify-content-center"
+                                                        style={{ borderRadius: '6px', width: '36px', height: '36px' }}
+                                                        title="Delete Policy"
+                                                    >
+                                                        {deletingId === p.policyId ? (
+                                                            <Loader2 size={16} className="animate-spin" />
+                                                        ) : (
+                                                            <Trash2 size={16} />
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -144,6 +185,45 @@ const PoliciesList = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '20px' }}>
+                            <div className="modal-body p-5 text-center">
+                                <div className="mb-4 text-danger">
+                                    <Trash2 size={64} className="opacity-75" />
+                                </div>
+                                <h3 className="fw-bold text-dark mb-3">Delete Policy?</h3>
+                                <p className="text-muted mb-4">
+                                    Are you sure you want to delete the policy for <span className="fw-bold text-dark">{policyToDelete?.customerName}</span>? 
+                                    <br />This action cannot be undone.
+                                </p>
+                                <div className="d-flex gap-3 justify-content-center">
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-light px-4 py-2 fw-bold text-muted border-0" 
+                                        style={{ borderRadius: '10px' }}
+                                        onClick={() => setShowDeleteModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-danger px-4 py-2 fw-bold d-flex align-items-center gap-2"
+                                        style={{ borderRadius: '10px' }}
+                                        onClick={confirmDelete}
+                                        disabled={!!deletingId}
+                                    >
+                                        {deletingId ? <Loader2 size={18} className="animate-spin" /> : 'Delete Policy'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
