@@ -1,104 +1,77 @@
 package com.ecowire.ecowire.service.impl;
 
 import com.ecowire.ecowire.dto.*;
-import com.ecowire.ecowire.enums.UserRole;
+import com.ecowire.ecowire.entity.User;
 import com.ecowire.ecowire.exception.UserAlreadyExistsException;
+import com.ecowire.ecowire.repository.UserRepository;
 import com.ecowire.ecowire.security.JwtUtil;
 import com.ecowire.ecowire.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    // Temporary in-memory user store (replace with JPA when Suraksha's entity is ready)
-    private final Map<String, UserRecord> userStore = new ConcurrentHashMap<>();
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    @Autowired private UserRepository  userRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private JwtUtil         jwtUtil;
 
     @Override
+    @Transactional
     public AuthResponseDTO registerUser(SignupRequestDTO request) {
+
         // Check duplicate username
-        boolean usernameTaken = userStore.values().stream()
-                .anyMatch(u -> u.username().equalsIgnoreCase(request.getUsername()));
-        if (usernameTaken) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserAlreadyExistsException(
                     "Username '" + request.getUsername() + "' is already taken");
         }
 
         // Check duplicate email
-        boolean emailTaken = userStore.values().stream()
-                .anyMatch(u -> u.email().equalsIgnoreCase(request.getEmail()));
-        if (emailTaken) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException(
                     "Email '" + request.getEmail() + "' is already registered");
         }
 
-        // Hash password and save
-        String userId      = UUID.randomUUID().toString();
-        String hashedPwd   = passwordEncoder.encode(request.getPassword());
-        LocalDateTime now  = LocalDateTime.now();
-
-        userStore.put(userId, new UserRecord(
-                userId,
-                request.getUsername(),
-                request.getEmail(),
-                hashedPwd,
-                request.getRole(),
-                now
-        ));
+        // Hash password and persist user
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+        user = userRepository.save(user);
 
         return new AuthResponseDTO(
-                userId,
-                request.getUsername(),
-                request.getEmail(),
-                request.getRole(),
-                now
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                user.getCreatedDate()
         );
     }
 
     @Override
     public LoginResponseDTO authenticateUser(LoginRequestDTO request) {
+
         // Find user by username
-        UserRecord user = userStore.values().stream()
-                .filter(u -> u.username().equalsIgnoreCase(request.getUsername()))
-                .findFirst()
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() ->
                         new BadCredentialsException("Invalid username or password"));
 
         // Verify password
-        if (!passwordEncoder.matches(request.getPassword(), user.passwordHash())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid username or password");
         }
 
         // Generate JWT
         String token = jwtUtil.generateToken(
-                user.userId(),
-                user.username(),
-                user.role().name()
+                user.getUserId(),
+                user.getUsername(),
+                user.getRole().name()
         );
 
-        return new LoginResponseDTO(token, user.role(), 86400L);
+        return new LoginResponseDTO(token, user.getRole(), 86400L);
     }
-
-    // Internal record to hold user data
-    private record UserRecord(
-            String userId,
-            String username,
-            String email,
-            String passwordHash,
-            UserRole role,
-            LocalDateTime createdDate
-    ) {}
 }

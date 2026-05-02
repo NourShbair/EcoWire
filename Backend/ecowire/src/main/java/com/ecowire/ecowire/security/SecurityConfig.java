@@ -41,15 +41,48 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
+
+                        // ── Public endpoints (no auth required) ──────────────
                         .requestMatchers(
                                 "/api/auth/signup",
                                 "/api/auth/login",
                                 "/api/health",
                                 "/api/ecoscore/calculate",
                                 "/api/sustainability/report",
-                                "/h2-console/**",
                                 "/error"
                         ).permitAll()
+
+                        // ── Policy creation — AGENT and ADMIN only ────────────
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/policies")
+                                .hasAnyRole("AGENT", "ADMIN")
+
+                        // ── Policy update/delete — AGENT and ADMIN only ───────
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/policies/**")
+                                .hasAnyRole("AGENT", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/policies/**")
+                                .hasAnyRole("AGENT", "ADMIN")
+
+                        // ── Carbon emissions — REPORTING and ADMIN only ───────
+                        .requestMatchers("/api/policies/*/carbon-emissions")
+                                .hasAnyRole("REPORTING", "ADMIN")
+
+                        // ── Climate risk — UNDERWRITER, REPORTING, ADMIN ──────
+                        .requestMatchers("/api/policies/*/climate-risk")
+                                .hasAnyRole("UNDERWRITER", "REPORTING", "ADMIN")
+
+                        // ── Nature data — UNDERWRITER, REPORTING, ADMIN ───────
+                        .requestMatchers("/api/policies/*/nature-data")
+                                .hasAnyRole("UNDERWRITER", "REPORTING", "ADMIN")
+
+                        // ── ESG metrics — UNDERWRITER, REPORTING, ADMIN ───────
+                        .requestMatchers("/api/policies/*/esg-metrics")
+                                .hasAnyRole("UNDERWRITER", "REPORTING", "ADMIN")
+
+                        // ── Detailed sustainability report — REPORTING, ADMIN ─
+                        .requestMatchers("/api/sustainability/report/detailed")
+                                .hasAnyRole("REPORTING", "ADMIN")
+
+                        // ── All other requests — must be authenticated ─────────
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter,
