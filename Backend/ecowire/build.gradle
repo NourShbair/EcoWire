@@ -16,6 +16,13 @@ java {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:2.0.0-M4"
+	}
 }
 
 dependencies {
@@ -38,6 +45,8 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+	testImplementation 'net.jqwik:jqwik:1.8.4'
 
 }
 

@@ -106,7 +106,7 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request) {
 
-        logger.error("Unexpected error: {}", ex.getMessage(), ex);
+        logger.error("Unexpected error at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
         ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),

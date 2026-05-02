@@ -40,6 +40,7 @@ export const apiService = {
     calculatePreview: (data) => api.get('ecoscore/calculate', { params: data }),
     getScoreBreakdown: (id) => api.get(`policies/${id}/ecoscore`),
     getRecommendations: (id) => api.get(`policies/${id}/recommendations`),
+    getEcoScoreExplanation: (id) => api.get(`policies/${id}/ecoscore/explanation`),
     createPolicy: (data) => api.post('policies', data),
     deletePolicy: (id) => api.delete(`policies/${id}`),
     updatePolicy: (id, data) => api.put(`policies/${id}`, data)

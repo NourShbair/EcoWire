@@ -13,6 +13,9 @@ const PolicyDashboard = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [explanation, setExplanation] = useState(null);
+    const [explanationLoading, setExplanationLoading] = useState(true);
+    const [explanationError, setExplanationError] = useState(null);
 
     const formatLabel = (key) => {
         if (!key) return '';
@@ -62,6 +65,13 @@ const PolicyDashboard = () => {
             } finally {
                 setLoading(false);
             }
+
+            // Fetch explanation independently — failure must not block the rest of the dashboard
+            setExplanationLoading(true);
+            apiService.getEcoScoreExplanation(policyId)
+                .then(res => setExplanation(res.data.explanation))
+                .catch(() => setExplanationError("AI explanation is temporarily unavailable."))
+                .finally(() => setExplanationLoading(false));
         };
         if (policyId) loadData();
     }, [policyId]);
@@ -176,6 +186,29 @@ const PolicyDashboard = () => {
 
                     {/* Breakdown Card */}
                     <ScoreBreakdown breakdownItems={breakdownItems} />
+
+                    {/* AI Eco Score Explanation */}
+                    <div className="p-4 bg-white shadow-sm border rounded-4" style={{ backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f8fbf9)' }}>
+                        <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                            <i className="bi bi-stars text-success"></i>
+                            AI Eco Score Explanation
+                        </h6>
+                        {explanationLoading ? (
+                            <div className="d-flex align-items-center gap-2 text-muted">
+                                <div className="spinner-border spinner-border-sm text-success" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
+                                <span className="small">Generating AI explanation...</span>
+                            </div>
+                        ) : explanationError ? (
+                            <div className="d-flex align-items-center gap-2 text-muted small">
+                                <i className="bi bi-exclamation-circle text-warning"></i>
+                                <span>{explanationError}</span>
+                            </div>
+                        ) : (
+                            <p className="text-muted mb-0" style={{ lineHeight: '1.7' }}>{explanation}</p>
+                        )}
+                    </div>
 
                     {/* Recommendations Section */}
                     <div className="p-4 bg-white shadow-sm border rounded-4 flex-grow-1" style={{ backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f8fbf9)' }}>
