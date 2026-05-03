@@ -5,7 +5,7 @@ import { apiService } from '../services/api';
 import EcoSelect from './EcoSelect';
 import clsx from 'clsx';
 
-const PolicyForm = () => {
+const PolicyForm = ({ isSidebarCollapsed }) => {
     const navigate = useNavigate();
     const { policyId } = useParams();
     const isEditMode = !!policyId;
@@ -13,7 +13,6 @@ const PolicyForm = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [fetchingData, setFetchingData] = useState(false);
-    const [previewScore, setPreviewScore] = useState(null);
 
     const [formData, setFormData] = useState({
         policyType: 'AUTO',
@@ -108,25 +107,7 @@ const PolicyForm = () => {
     const nextStep = async () => {
         if (!isStepValid()) return;
         setSubmitError(null);
-
-        if (step === 2) {
-            setLoading(true);
-            try {
-                const res = await apiService.calculatePreview({
-                    policyType: formData.policyType,
-                    ...formData
-                });
-                setPreviewScore(res.data);
-                setStep(3);
-            } catch (err) {
-                console.error("Preview failed", err);
-                setSubmitError("Failed to calculate sustainability score. Please check your connection or backend status.");
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            setStep((s) => Math.min(s + 1, 3));
-        }
+        setStep((s) => Math.min(s + 1, 3));
     };
 
     const prevStep = () => {
@@ -164,11 +145,11 @@ const PolicyForm = () => {
     const steps = [
         { id: 1, name: 'Identity', icon: 'bi-person' },
         { id: 2, name: 'Policy Details', icon: 'bi-shield-check' },
-        { id: 3, name: 'Impact', icon: 'bi-lightning-charge' },
+        { id: 3, name: 'Review', icon: 'bi-eye' },
     ];
 
     return (
-        <div className="max-w-4xl mx-auto text-start" style={{ paddingBottom: '150px' }}>
+        <div className="form-section" style={{ paddingBottom: '120px' }}>
             {/* Header */}
             <div className="mb-5">
                 <button
@@ -181,13 +162,13 @@ const PolicyForm = () => {
                 <p className="text-muted">
                     {isEditMode
                         ? `Updating details for policy ID: ${policyId}`
-                        : 'Complete the steps below to generate a sustainability-linked policy.'}
+                        : 'Complete the steps below to generate a sustainability policy.'}
                 </p>
             </div>
 
             {/* Stepper Header */}
-            <div className="mb-5 d-flex justify-content-between position-relative px-4">
-                <div className="position-absolute bg-secondary opacity-10" style={{ top: 22, left: 50, right: 50, height: 2, zIndex: 0 }}></div>
+            <div className="mb-5 d-flex justify-content-between position-relative">
+                <div className="position-absolute bg-secondary opacity-10" style={{ top: 22, left: 50, right: 45, height: 2, zIndex: 0 }}></div>
                 <div
                     className="position-absolute bg-success transition-all duration-500"
                     style={{
@@ -213,7 +194,7 @@ const PolicyForm = () => {
             </div>
 
             {/* Form Content */}
-            <div className="min-vh-50 px-5 position-relative">
+            <div className="min-vh-50 px-4 position-relative">
                 {fetchingData && (
                     <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white opacity-75" style={{ zIndex: 10 }}>
                         <div className="spinner-border text-success mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
@@ -260,7 +241,7 @@ const PolicyForm = () => {
                                     <label className={clsx("form-label text-muted fw-bold mb-3", isEditMode && "opacity-50")}>
                                         Select Policy Type {isEditMode && <span className="small fw-normal">(Cannot be changed after creation)</span>}
                                     </label>
-                                    <div className="d-flex gap-3">
+                                    <div className="d-flex flex-column flex-md-row gap-2 gap-md-3">
                                         {['AUTO', 'HOME', 'PROPERTY'].map(t => (
                                             <button
                                                 key={t}
@@ -268,7 +249,7 @@ const PolicyForm = () => {
                                                 onClick={() => handleTypeChange(t)}
                                                 disabled={isEditMode}
                                                 className={clsx(
-                                                    "btn px-5 py-2 border-2 fw-bold transition-all",
+                                                    "btn px-3 px-md-5 py-2 border-2 fw-bold transition-all w-100 w-md-auto",
                                                     formData.policyType === t ? "btn-success border-success text-white shadow-sm" : "btn-outline-secondary btn-hover-eco opacity-60",
                                                     isEditMode && formData.policyType !== t && "opacity-25",
                                                     isEditMode && "cursor-not-allowed"
@@ -526,40 +507,48 @@ const PolicyForm = () => {
                         </motion.div>
                     )}
 
-                    {/* STEP 3: IMPACT (DYNAMIC PREVIEW) */}
-                    {step === 3 && previewScore && (
+                    {/* STEP 3: REVIEW DETAILS */}
+                    {step === 3 && (
                         <motion.div
                             key="step3"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="text-center py-4"
+                            className="py-2"
                         >
-                            <div className="mb-4 d-inline-block p-4 rounded-circle bg-mint text-success shadow-sm">
-                                <i className="bi bi-lightning-charge fs-1"></i>
-                            </div>
-                            <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
-                            <p className="text-muted mb-5">Live results based on your {formData.policyType} configuration.</p>
+                            <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">3. Review Details</h4>
+                            <div className="glass-card p-4 bg-white border-0 shadow-sm rounded-4 text-start">
+                                <p className="text-muted">Review the details before creating the policy.</p>
 
-                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400 }}>
-                                <h1 className="display-3 fw-bold text-success mb-0">{previewScore.totalScore}</h1>
-                                <p className="fw-bold text-success text-uppercase tracking-wider">
-                                    {previewScore.totalScore >= 67 ? 'Excellent' : previewScore.totalScore >= 34 ? 'Good' : 'Needs Improvement'}
-                                </p>
-                                <hr className="opacity-20" />
-                                <div className="text-start bg-mint p-3 rounded-3 mt-3">
-                                    <div className="d-flex align-items-center gap-2 mb-2 text-success fw-bold">
-                                        <i className="bi bi-check-circle"></i>
-                                        <span>
-                                            {previewScore.totalScore >= 67 ? '15% Discount Eligible' :
-                                                previewScore.totalScore >= 34 ? '10% Discount Eligible' : 'Standard Rate Applied'}
-                                        </span>
+                                <h5 className="fw-bold mb-3 text-success border-bottom pb-2">Customer Information</h5>
+                                <div className="row mb-4">
+                                    <div className="col-sm-6 mb-3">
+                                        <span className="text-muted d-block small fw-bold text-uppercase">Full Name</span>
+                                        <span className="fw-medium fs-5">{formData.customerName}</span>
                                     </div>
-                                    <p className="small text-muted mb-0">
-                                        {previewScore.totalScore >= 60
-                                            ? "Congratulations! Your eco-friendly choices qualify for a green premium reduction."
-                                            : "Increase your score by switching to sustainable alternatives to qualify for discounts."}
-                                    </p>
+                                    <div className="col-sm-6 mb-3">
+                                        <span className="text-muted d-block small fw-bold text-uppercase">Email Address</span>
+                                        <span className="fw-medium fs-5">{formData.contactInfo}</span>
+                                    </div>
+                                    <div className="col-sm-6 mb-3">
+                                        <span className="text-muted d-block small fw-bold text-uppercase">Policy Type</span>
+                                        <span className="fw-medium fs-5">{formData.policyType}</span>
+                                    </div>
+                                </div>
+
+                                <h5 className="fw-bold mb-3 text-success border-bottom pb-2">Policy Configuration</h5>
+                                <div className="row">
+                                    {Object.entries(formData).map(([key, value]) => {
+                                        if (['customerName', 'contactInfo', 'policyType'].includes(key) || value === '' || value === false) return null;
+                                        // Simple formatting for keys like vehicleId -> Vehicle Id
+                                        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                        return (
+                                            <div key={key} className="col-sm-6 mb-3">
+                                                <span className="text-muted d-block small fw-bold text-uppercase">{formattedKey}</span>
+                                                <span className="fw-medium fs-5">{value === true ? 'Yes' : value}</span>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </motion.div>
@@ -575,37 +564,41 @@ const PolicyForm = () => {
             )}
 
             {/* Fixed Navigation Buttons */}
-            {/* Fixed Navigation Buttons */}
             <div
-                className="position-fixed bottom-0 end-0 border-top d-flex justify-content-between align-items-center"
-                style={{ width: 'calc(100% - 280px)', backgroundColor: 'white', zIndex: 1000, padding: '1.5rem 3rem' }}
+                className="policy-form-footer"
+                style={{ 
+                    width: isSidebarCollapsed ? 'calc(100% - var(--sidebar-collapsed-width))' : 'calc(100% - var(--sidebar-width))', 
+                    left: isSidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'
+                }}
             >
-                <button
-                    onClick={() => navigate('/policies')}
-                    disabled={loading}
-                    className="btn btn-hover-eco text-muted fw-bold px-4 py-2"
-                >
-                    Cancel
-                </button>
+                <div className="d-flex justify-content-between align-items-center mx-auto" style={{ maxWidth: '900px' }}>
+                    <button
+                        onClick={() => navigate('/policies')}
+                        disabled={loading}
+                        className="btn btn-hover-eco text-muted fw-bold px-4 py-2"
+                    >
+                        Cancel
+                    </button>
 
-                {step < 3 ? (
-                    <button
-                        onClick={nextStep}
-                        disabled={loading || !isStepValid()}
-                        className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
-                    >
-                        {loading ? <div className="spinner-border spinner-border-sm" role="status"></div> : <>Continue <i className="bi bi-arrow-right"></i></>}
-                    </button>
-                ) : (
-                    <button
-                        className="btn btn-eco px-4 py-2 shadow"
-                        disabled={loading || !isStepValid()}
-                        onClick={handleFinalize}
-                    >
-                        {loading ? <div className="spinner-border spinner-border-sm me-2" role="status"></div> : null}
-                        {isEditMode ? 'Update Policy' : 'Create Policy'}
-                    </button>
-                )}
+                    {step < 3 ? (
+                        <button
+                            onClick={nextStep}
+                            disabled={loading || !isStepValid()}
+                            className="btn btn-eco px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                        >
+                            {loading ? <div className="spinner-border spinner-border-sm" role="status"></div> : <>Continue <i className="bi bi-arrow-right"></i></>}
+                        </button>
+                    ) : (
+                        <button
+                            className="btn btn-eco px-4 py-2 shadow"
+                            disabled={loading || !isStepValid()}
+                            onClick={handleFinalize}
+                        >
+                            {loading ? <div className="spinner-border spinner-border-sm me-2" role="status"></div> : null}
+                            {isEditMode ? 'Update Policy' : 'Create Policy'}
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );

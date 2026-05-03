@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import PolicyForm from './components/PolicyForm';
@@ -27,6 +28,12 @@ function RoleProtectedRoute({ children, permission, fallback = '/policies' }) {
 }
 
 function App() {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   return (
     <Router>
       <Routes>
@@ -36,15 +43,18 @@ function App() {
           path="/*"
           element={
             <ProtectedRoute>
-              <div className="main-layout">
-                <Sidebar />
+              <div className={`main-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <Sidebar 
+                  isCollapsed={isSidebarCollapsed} 
+                  onToggle={toggleSidebar} 
+                />
                 <main className="content-wrapper">
                   <Routes>
                     <Route 
                       path="/" 
                       element={
                         <RoleProtectedRoute permission={canCreatePolicy}>
-                          <PolicyForm />
+                          <PolicyForm isSidebarCollapsed={isSidebarCollapsed} />
                         </RoleProtectedRoute>
                       } 
                     />
@@ -52,7 +62,7 @@ function App() {
                       path="/edit/:policyId" 
                       element={
                         <RoleProtectedRoute permission={canEditPolicy}>
-                          <PolicyForm />
+                          <PolicyForm isSidebarCollapsed={isSidebarCollapsed} />
                         </RoleProtectedRoute>
                       } 
                     />
