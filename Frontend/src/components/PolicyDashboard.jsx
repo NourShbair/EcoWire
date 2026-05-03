@@ -168,6 +168,7 @@ const PolicyDashboard = () => {
                         status={status}
                         discount={discount}
                         policyType={policy.policyType}
+                        topRecommendation={recommendations.length > 0 ? recommendations.sort((a, b) => a.priority - b.priority)[0] : null}
                     />
                 </div>
 
