@@ -27,10 +27,17 @@ const Sidebar = () => {
             </div>
 
             <nav className="mt-4 flex-grow-1">
+                <Link to="/analytics" className={`nav-link ${location.pathname === '/analytics' ? 'active' : ''}`}>
+                    <i className="bi bi-bar-chart me-2"></i> Analytics
+                </Link>
                 <RoleGuard permission={canCreatePolicy}>
-                    <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>New Policy</Link>
+                    <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+                        <i className="bi bi-plus-circle me-2"></i> New Policy
+                    </Link>
                 </RoleGuard>
-                <Link to="/policies" className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''}`}>My Policies</Link>
+                <Link to="/policies" className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''}`}>
+                    <i className="bi bi-list-check me-2"></i> My Policies
+                </Link>
             </nav>
 
             <div className="mt-auto p-4 border-top border-white-20">
