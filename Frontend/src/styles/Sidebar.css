@@ -90,14 +90,8 @@
     color: var(--eco-primary);
 }
 
-.sidebar.collapsed .sidebar-toggle-btn i {
-    transform: rotate(180deg);
-}
-
 /* Mobile Adjustments */
 @media (max-width: 768px) {
-    /* Ensure sidebar is collapsed by default on mobile if needed, 
-       but here we follow the state passed from App.jsx */
     .sidebar {
         width: var(--sidebar-width);
     }

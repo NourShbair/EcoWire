@@ -194,7 +194,7 @@ const PolicyForm = ({ isSidebarCollapsed }) => {
             </div>
 
             {/* Form Content */}
-            <div className="min-vh-50 px-4 position-relative">
+            <div className="min-vh-50 position-relative">
                 {fetchingData && (
                     <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white opacity-75" style={{ zIndex: 10 }}>
                         <div className="spinner-border text-success mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
@@ -566,8 +566,8 @@ const PolicyForm = ({ isSidebarCollapsed }) => {
             {/* Fixed Navigation Buttons */}
             <div
                 className="policy-form-footer"
-                style={{ 
-                    width: isSidebarCollapsed ? 'calc(100% - var(--sidebar-collapsed-width))' : 'calc(100% - var(--sidebar-width))', 
+                style={{
+                    width: isSidebarCollapsed ? 'calc(100% - var(--sidebar-collapsed-width))' : 'calc(100% - var(--sidebar-width))',
                     left: isSidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'
                 }}
             >

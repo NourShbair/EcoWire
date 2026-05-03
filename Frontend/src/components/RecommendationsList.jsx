@@ -14,28 +14,27 @@ const RecommendationsList = ({ recommendations = [], policyType }) => {
             {recommendations.sort((a, b) => a.priority - b.priority).map((rec, idx) => (
                 <div
                     key={idx}
-                    className="p-3 bg-white border rounded-4 shadow-sm hover-eco-row transition-all d-flex align-items-start gap-3"
+                    className="p-3 bg-white border rounded-4 shadow-sm hover-eco-row transition-all d-flex flex-column flex-md-row align-items-start gap-3"
                     style={{ borderLeft: '4px solid #4caf50 !important' }}
                 >
-                    <div className="bg-mint p-2 rounded-circle text-success">
+                    <div className="bg-mint p-2 rounded-circle text-success flex-shrink-0">
                         <i className="bi bi-lightbulb fs-5"></i>
                     </div>
-                    <div className="flex-grow-1">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
+                    <div className="flex-grow-1 w-100">
+                        <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
                             <h6 className="fw-bold text-dark mb-0">{rec.description}</h6>
-                            <span className="badge bg-success bg-opacity-10 text-success fw-bold border border-success border-opacity-25 px-2">
+                            <span className="badge bg-success bg-opacity-10 text-success fw-bold border border-success border-opacity-25 px-2 flex-shrink-0">
                                 + {rec.estimatedImprovement} pts
                             </span>
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <span className="text-muted small">
+                        <div className="d-flex flex-wrap align-items-center gap-2 mt-2">
+                            <div className="bg-light px-2 py-1 rounded small text-muted border">
                                 Priority: <span className="text-dark fw-bold">{rec.priority === 1 ? 'High' : rec.priority === 2 ? 'Medium' : 'Low'}</span>
-                            </span>
-                            {rec.category && <span className="text-muted opacity-25">|</span>}
+                            </div>
                             {rec.category && (
-                                <span className="text-muted small">
+                                <div className="bg-light px-2 py-1 rounded small text-muted border">
                                     Category: <span className="text-dark fw-bold">{rec.category}</span>
-                                </span>
+                                </div>
                             )}
                         </div>
                     </div>

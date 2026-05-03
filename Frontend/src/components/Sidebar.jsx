@@ -19,8 +19,8 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
     return (
         <div className={`sidebar shadow d-flex flex-column ${isCollapsed ? 'collapsed' : ''}`}>
             {/* Toggle Button */}
-            <button 
-                className="sidebar-toggle-btn" 
+            <button
+                className="sidebar-toggle-btn"
                 onClick={onToggle}
                 title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
@@ -51,19 +51,19 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                         </Link>
                     </div>
                 </RoleGuard>
-                
-                <Link 
-                    to="/analytics" 
-                    className={`nav-link ${location.pathname === '/analytics' ? 'active' : ''} ${isCollapsed ? 'justify-content-center' : ''}`} 
+
+                <Link
+                    to="/analytics"
+                    className={`nav-link ${location.pathname === '/analytics' ? 'active' : ''} ${isCollapsed ? 'justify-content-center' : ''}`}
                     title="Analytics"
                 >
                     <i className="sidebar-icon bi bi-bar-chart fs-5"></i>
                     {!isCollapsed && <span className="sidebar-text ms-2">Analytics</span>}
                 </Link>
 
-                <Link 
-                    to="/policies" 
-                    className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''} ${isCollapsed ? 'justify-content-center' : ''}`} 
+                <Link
+                    to="/policies"
+                    className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''} ${isCollapsed ? 'justify-content-center' : ''}`}
                     title="My Policies"
                 >
                     <i className="sidebar-icon bi bi-list-check fs-5"></i>

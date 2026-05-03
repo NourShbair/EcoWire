@@ -63,11 +63,11 @@ const PoliciesList = () => {
     );
 
     return (
-        <div className="p-4">
+        <div className="list">
             {/* Page Header */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 ">
                 <div>
-                    <h1 className="fw-bold text-dark mb-1" style={{ fontSize: '2.5rem' }}>Policies</h1>
+                    <h1 className="fw-bold text-dark mb-1 responsive-h1">Policies</h1>
                     <p className="text-muted mb-0">Manage and review your generated ESG policies.</p>
                 </div>
                 <RoleGuard permission={canCreatePolicy}>
@@ -82,9 +82,9 @@ const PoliciesList = () => {
 
             {/* Table Container */}
             <div className="card border shadow-sm mt-5" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-                <div className="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                <div className="card-header bg-white border-0 py-4 px-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                     <h5 className="fw-bold text-dark mb-0">Policies</h5>
-                    <div className="position-relative" style={{ width: '320px' }}>
+                    <div className="position-relative w-100" style={{ maxWidth: '320px' }}>
                         <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                         <input
                             type="text"

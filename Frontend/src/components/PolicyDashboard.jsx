@@ -114,9 +114,9 @@ const PolicyDashboard = () => {
                 <i className="bi bi-arrow-left"></i> Back to Policies
             </button>
 
-            <div className="d-flex justify-content-between align-items-start mb-4 pb-4 border-bottom">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-4 mb-4 pb-4 border-bottom">
                 <div>
-                    <h2 className="fw-bold text-dark mb-1">ESG Policy Report</h2>
+                    <h2 className="fw-bold text-dark mb-1 responsive-h1">ESG Policy Report</h2>
                     <p className="text-muted mb-0 small">Policy ID: <code className="text-success fw-bold">{policy.policyId}</code></p>
                     <p className="text-muted mb-0 small mt-1">
                         Issued On: <span className="fw-bold">
@@ -126,12 +126,12 @@ const PolicyDashboard = () => {
                         </span>
                     </p>
                 </div>
-                <div className="d-flex align-items-center gap-3">
-                    <div className=" text-success">
+                <div className="d-flex align-items-center gap-3 p-2">
+                    <div className="text-success">
                         <i className="bi bi-shield-check fs-2"></i>
                     </div>
                     <div className="text-start">
-                        <h3 className="fw-bold text-dark mb-1">{policy.customerName}</h3>
+                        <h3 className="fw-bold text-dark mb-1 h5">{policy.customerName}</h3>
                         <div className="text-muted small">{policy.contactInfo}</div>
                     </div>
                 </div>
