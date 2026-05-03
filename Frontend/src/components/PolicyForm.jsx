@@ -13,7 +13,6 @@ const PolicyForm = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [fetchingData, setFetchingData] = useState(false);
-    const [previewScore, setPreviewScore] = useState(null);
 
     const [formData, setFormData] = useState({
         policyType: 'AUTO',
@@ -108,25 +107,7 @@ const PolicyForm = () => {
     const nextStep = async () => {
         if (!isStepValid()) return;
         setSubmitError(null);
-
-        if (step === 2) {
-            setLoading(true);
-            try {
-                const res = await apiService.calculatePreview({
-                    policyType: formData.policyType,
-                    ...formData
-                });
-                setPreviewScore(res.data);
-                setStep(3);
-            } catch (err) {
-                console.error("Preview failed", err);
-                setSubmitError("Failed to calculate sustainability score. Please check your connection or backend status.");
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            setStep((s) => Math.min(s + 1, 3));
-        }
+        setStep((s) => Math.min(s + 1, 3));
     };
 
     const prevStep = () => {
@@ -164,7 +145,7 @@ const PolicyForm = () => {
     const steps = [
         { id: 1, name: 'Identity', icon: 'bi-person' },
         { id: 2, name: 'Policy Details', icon: 'bi-shield-check' },
-        { id: 3, name: 'Impact', icon: 'bi-lightning-charge' },
+        { id: 3, name: 'Review', icon: 'bi-eye' },
     ];
 
     return (
@@ -181,7 +162,7 @@ const PolicyForm = () => {
                 <p className="text-muted">
                     {isEditMode
                         ? `Updating details for policy ID: ${policyId}`
-                        : 'Complete the steps below to generate a sustainability-linked policy.'}
+                        : 'Complete the steps below to generate a sustainability policy.'}
                 </p>
             </div>
 
@@ -526,40 +507,48 @@ const PolicyForm = () => {
                         </motion.div>
                     )}
 
-                    {/* STEP 3: IMPACT (DYNAMIC PREVIEW) */}
-                    {step === 3 && previewScore && (
+                    {/* STEP 3: REVIEW DETAILS */}
+                    {step === 3 && (
                         <motion.div
                             key="step3"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="text-center py-4"
+                            className="py-2"
                         >
-                            <div className="mb-4 d-inline-block p-4 rounded-circle bg-mint text-success shadow-sm">
-                                <i className="bi bi-lightning-charge fs-1"></i>
-                            </div>
-                            <h3 className="fw-bold text-dark">Sustainability Analysis</h3>
-                            <p className="text-muted mb-5">Live results based on your {formData.policyType} configuration.</p>
+                            <h4 className="fw-bold mb-4 border-bottom pb-3 text-dark">3. Review Details</h4>
+                            <div className="glass-card p-4 bg-white border-0 shadow-sm rounded-4 text-start">
+                                <p className="text-muted">Review the details before creating the policy.</p>
 
-                            <div className="glass-card p-4 bg-white border-0 shadow mx-auto" style={{ maxWidth: 400 }}>
-                                <h1 className="display-3 fw-bold text-success mb-0">{previewScore.totalScore}</h1>
-                                <p className="fw-bold text-success text-uppercase tracking-wider">
-                                    {previewScore.totalScore >= 67 ? 'Excellent' : previewScore.totalScore >= 34 ? 'Good' : 'Needs Improvement'}
-                                </p>
-                                <hr className="opacity-20" />
-                                <div className="text-start bg-mint p-3 rounded-3 mt-3">
-                                    <div className="d-flex align-items-center gap-2 mb-2 text-success fw-bold">
-                                        <i className="bi bi-check-circle"></i>
-                                        <span>
-                                            {previewScore.totalScore >= 67 ? '15% Discount Eligible' :
-                                                previewScore.totalScore >= 34 ? '10% Discount Eligible' : 'Standard Rate Applied'}
-                                        </span>
+                                <h5 className="fw-bold mb-3 text-success border-bottom pb-2">Customer Information</h5>
+                                <div className="row mb-4">
+                                    <div className="col-sm-6 mb-3">
+                                        <span className="text-muted d-block small fw-bold text-uppercase">Full Name</span>
+                                        <span className="fw-medium fs-5">{formData.customerName}</span>
                                     </div>
-                                    <p className="small text-muted mb-0">
-                                        {previewScore.totalScore >= 60
-                                            ? "Congratulations! Your eco-friendly choices qualify for a green premium reduction."
-                                            : "Increase your score by switching to sustainable alternatives to qualify for discounts."}
-                                    </p>
+                                    <div className="col-sm-6 mb-3">
+                                        <span className="text-muted d-block small fw-bold text-uppercase">Email Address</span>
+                                        <span className="fw-medium fs-5">{formData.contactInfo}</span>
+                                    </div>
+                                    <div className="col-sm-6 mb-3">
+                                        <span className="text-muted d-block small fw-bold text-uppercase">Policy Type</span>
+                                        <span className="fw-medium fs-5">{formData.policyType}</span>
+                                    </div>
+                                </div>
+
+                                <h5 className="fw-bold mb-3 text-success border-bottom pb-2">Policy Configuration</h5>
+                                <div className="row">
+                                    {Object.entries(formData).map(([key, value]) => {
+                                        if (['customerName', 'contactInfo', 'policyType'].includes(key) || value === '' || value === false) return null;
+                                        // Simple formatting for keys like vehicleId -> Vehicle Id
+                                        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                        return (
+                                            <div key={key} className="col-sm-6 mb-3">
+                                                <span className="text-muted d-block small fw-bold text-uppercase">{formattedKey}</span>
+                                                <span className="fw-medium fs-5">{value === true ? 'Yes' : value}</span>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </motion.div>
