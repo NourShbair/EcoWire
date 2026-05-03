@@ -35,6 +35,15 @@ public class Policy {
     @Column(name = "updated_date", nullable = false)
     private LocalDateTime updatedDate;
 
+    @Column(name = "organization_id", nullable = true, length = 36)
+    private String organizationId;
+
+    @Column(name = "customer_id", nullable = true, length = 36)
+    private String customerId;
+
+    @Column(name = "created_by_id", nullable = true, length = 36)
+    private String createdById;
+
     @OneToOne(mappedBy = "policy", cascade = CascadeType.ALL, orphanRemoval = true)
     private AutoPolicy autoPolicy;
 
@@ -58,6 +67,12 @@ public class Policy {
     public void setPolicyType(PolicyType policyType) { this.policyType = policyType; }
     public LocalDateTime getCreatedDate() { return createdDate; }
     public LocalDateTime getUpdatedDate() { return updatedDate; }
+    public String getOrganizationId() { return organizationId; }
+    public void setOrganizationId(String organizationId) { this.organizationId = organizationId; }
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+    public String getCreatedById() { return createdById; }
+    public void setCreatedById(String createdById) { this.createdById = createdById; }
     public AutoPolicy getAutoPolicy() { return autoPolicy; }
     public void setAutoPolicy(AutoPolicy autoPolicy) { this.autoPolicy = autoPolicy; }
     public HomePolicy getHomePolicy() { return homePolicy; }

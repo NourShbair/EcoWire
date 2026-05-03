@@ -32,6 +32,9 @@ public class User {
     @Column(name = "role", nullable = false, length = 30)
     private UserRole role;
 
+    @Column(name = "organization_id", nullable = true, length = 36)
+    private String organizationId;
+
     @CreationTimestamp
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
@@ -52,6 +55,9 @@ public class User {
 
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
+
+    public String getOrganizationId() { return organizationId; }
+    public void setOrganizationId(String organizationId) { this.organizationId = organizationId; }
 
     public LocalDateTime getCreatedDate() { return createdDate; }
 }

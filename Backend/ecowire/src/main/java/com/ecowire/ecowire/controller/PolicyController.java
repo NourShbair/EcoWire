@@ -2,6 +2,7 @@ package com.ecowire.ecowire.controller;
 
 import com.ecowire.ecowire.dto.PolicyRequestDTO;
 import com.ecowire.ecowire.dto.PolicyResponseDTO;
+import com.ecowire.ecowire.security.RequestContext;
 import com.ecowire.ecowire.service.PolicyService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,20 +22,23 @@ public class PolicyController {
     @PostMapping
     public ResponseEntity<PolicyResponseDTO> createPolicy(
             @RequestBody @Valid PolicyRequestDTO request) {
-        PolicyResponseDTO response = policyService.createPolicy(request);
+        RequestContext ctx = RequestContext.current();
+        PolicyResponseDTO response = policyService.createPolicy(request, ctx);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PolicyResponseDTO> getPolicy(
             @PathVariable String id) {
-        PolicyResponseDTO response = policyService.getPolicy(id);
+        RequestContext ctx = RequestContext.current();
+        PolicyResponseDTO response = policyService.getPolicy(id, ctx);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<List<PolicyResponseDTO>> getAllPolicies() {
-        List<PolicyResponseDTO> policies = policyService.getAllPolicies();
+        RequestContext ctx = RequestContext.current();
+        List<PolicyResponseDTO> policies = policyService.getAllPolicies(ctx);
         return ResponseEntity.ok(policies);
     }
 
@@ -42,14 +46,16 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDTO> updatePolicy(
             @PathVariable String id,
             @RequestBody @Valid PolicyRequestDTO request) {
-        PolicyResponseDTO response = policyService.updatePolicy(id, request);
+        RequestContext ctx = RequestContext.current();
+        PolicyResponseDTO response = policyService.updatePolicy(id, request, ctx);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePolicy(
             @PathVariable String id) {
-        policyService.deletePolicy(id);
+        RequestContext ctx = RequestContext.current();
+        policyService.deletePolicy(id, ctx);
         return ResponseEntity.noContent().build();
     }
 

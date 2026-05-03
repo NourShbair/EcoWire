@@ -19,6 +19,9 @@ public class PolicyRequestDTO {
     @Email(message = "Contact information must be a valid email address")
     private String contactInfo;
 
+    // Optional: link policy to a CUSTOMER user
+    private String customerId;
+
     // AUTO fields
     private String vehicleId;
     private VehicleType vehicleType;

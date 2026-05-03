@@ -24,4 +24,6 @@ public class SignupRequestDTO {
 
     @NotNull(message = "Role is required")
     private UserRole role;
+
+    private String organizationId;
 }

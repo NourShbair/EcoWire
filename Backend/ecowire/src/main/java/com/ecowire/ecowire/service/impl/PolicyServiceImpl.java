@@ -3,11 +3,14 @@ package com.ecowire.ecowire.service.impl;
 import com.ecowire.ecowire.dto.*;
 import com.ecowire.ecowire.entity.*;
 import com.ecowire.ecowire.enums.PolicyType;
+import com.ecowire.ecowire.enums.UserRole;
+import com.ecowire.ecowire.exception.ForbiddenPolicyAccessException;
 import com.ecowire.ecowire.exception.InvalidPolicyTypeException;
 import com.ecowire.ecowire.exception.PolicyNotFoundException;
 import com.ecowire.ecowire.repository.*;
 import com.ecowire.ecowire.scoring.EcoScoreResult;
 import com.ecowire.ecowire.scoring.ScoreComponent;
+import com.ecowire.ecowire.security.RequestContext;
 import com.ecowire.ecowire.service.EcoScoringEngine;
 import com.ecowire.ecowire.service.PolicyService;
 import com.ecowire.ecowire.service.RecommendationEngine;
@@ -16,10 +19,11 @@ import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -32,6 +36,7 @@ public class PolicyServiceImpl implements PolicyService {
     @Autowired private HomePolicyRepository     homePolicyRepository;
     @Autowired private PropertyPolicyRepository propertyPolicyRepository;
     @Autowired private EcoScoreRepository       ecoScoreRepository;
+    @Autowired private UserRepository           userRepository;
     @Autowired private EcoScoringEngine         scoringEngine;
     @Autowired private RecommendationEngine     recommendationEngine;
 
@@ -42,7 +47,7 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     @Transactional
-    public PolicyResponseDTO createPolicy(PolicyRequestDTO request) {
+    public PolicyResponseDTO createPolicy(PolicyRequestDTO request, RequestContext ctx) {
         logger.info("Creating policy of type: {}", request.getPolicyType());
 
         // 1. Save base policy and flush to DB immediately so timestamps are generated
@@ -50,6 +55,25 @@ public class PolicyServiceImpl implements PolicyService {
         policy.setCustomerName(request.getCustomerName());
         policy.setContactInfo(request.getContactInfo());
         policy.setPolicyType(request.getPolicyType());
+
+        // organizationId and createdById always come from the JWT, never from the request body
+        policy.setOrganizationId(ctx.isOrgScoped() ? ctx.getOrganizationId() : null);
+        policy.setCreatedById(ctx.getUserId());
+
+        // Validate and set customerId if provided
+        if (request.getCustomerId() != null) {
+            User customer = userRepository.findById(request.getCustomerId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "User " + request.getCustomerId() + " is not a CUSTOMER"));
+            if (customer.getRole() != UserRole.CUSTOMER) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "User " + request.getCustomerId() + " is not a CUSTOMER");
+            }
+            policy.setCustomerId(request.getCustomerId());
+        }
+
         policy = policyRepository.saveAndFlush(policy);
 
         // Refresh entity to get @CreationTimestamp and @UpdateTimestamp populated
@@ -79,9 +103,25 @@ public class PolicyServiceImpl implements PolicyService {
     // ─── GET SINGLE ──────────────────────────────────────────────────────────
 
     @Override
-    public PolicyResponseDTO getPolicy(String policyId) {
+    public PolicyResponseDTO getPolicy(String policyId, RequestContext ctx) {
         Policy policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new PolicyNotFoundException(policyId));
+
+        // Org-scoped: deny access if policy belongs to a different org
+        if (ctx.isOrgScoped()) {
+            if (!Objects.equals(policy.getOrganizationId(), ctx.getOrganizationId())) {
+                throw new PolicyNotFoundException(policyId);
+            }
+        }
+
+        // Customer: deny access if policy belongs to a different customer
+        if (ctx.isCustomer()) {
+            if (!Objects.equals(policy.getCustomerId(), ctx.getUserId())) {
+                throw new PolicyNotFoundException(policyId);
+            }
+        }
+
+        // ADMIN: no check
 
         EcoScore ecoScore = ecoScoreRepository
                 .findTopByPolicy_PolicyIdOrderByCalculatedDateDesc(policyId)
@@ -93,8 +133,25 @@ public class PolicyServiceImpl implements PolicyService {
     // ─── GET ALL ─────────────────────────────────────────────────────────────
 
     @Override
-    public List<PolicyResponseDTO> getAllPolicies() {
-        return policyRepository.findAll().stream()
+    public List<PolicyResponseDTO> getAllPolicies(RequestContext ctx) {
+        List<Policy> policies;
+
+        logger.debug("getAllPolicies called — role={}, orgId={}, userId={}, isAdmin={}, isOrgScoped={}, isCustomer={}",
+                ctx.getRole(), ctx.getOrganizationId(), ctx.getUserId(),
+                ctx.isAdmin(), ctx.isOrgScoped(), ctx.isCustomer());
+
+        if (ctx.isAdmin()) {
+            policies = policyRepository.findAll();
+        } else if (ctx.isOrgScoped()) {
+            policies = policyRepository.findByOrganizationId(ctx.getOrganizationId());
+        } else {
+            // CUSTOMER
+            policies = policyRepository.findByCustomerId(ctx.getUserId());
+        }
+
+        logger.debug("getAllPolicies returning {} policies", policies.size());
+
+        return policies.stream()
                 .map(policy -> {
                     EcoScore ecoScore = ecoScoreRepository
                             .findTopByPolicy_PolicyIdOrderByCalculatedDateDesc(policy.getPolicyId())
@@ -108,11 +165,27 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     @Transactional
-    public PolicyResponseDTO updatePolicy(String policyId, PolicyRequestDTO request) {
+    public PolicyResponseDTO updatePolicy(String policyId, PolicyRequestDTO request, RequestContext ctx) {
         logger.info("Updating policy with ID: {}", policyId);
 
         Policy policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new PolicyNotFoundException(policyId));
+
+        // CUSTOMER cannot modify policies
+        if (ctx.isCustomer()) {
+            throw new ForbiddenPolicyAccessException(
+                    "Access denied: CUSTOMER role cannot modify policies");
+        }
+
+        // Org-scoped: deny if policy belongs to a different org
+        if (ctx.isOrgScoped()) {
+            if (!Objects.equals(policy.getOrganizationId(), ctx.getOrganizationId())) {
+                throw new ForbiddenPolicyAccessException(
+                        "Access denied: policy belongs to a different organization");
+            }
+        }
+
+        // ADMIN: no check
 
         // Prevent policyType change
         if (request.getPolicyType() != null &&
@@ -122,7 +195,7 @@ public class PolicyServiceImpl implements PolicyService {
                     true);
         }
 
-        // Update base fields
+        // Update base fields — do NOT overwrite organizationId or createdById
         policy.setCustomerName(request.getCustomerName());
         policy.setContactInfo(request.getContactInfo());
         policy = policyRepository.saveAndFlush(policy);
@@ -146,18 +219,34 @@ public class PolicyServiceImpl implements PolicyService {
         entityManager.refresh(ecoScore);
 
         logger.info("Policy updated successfully: {}", policyId);
-        return buildPolicyResponse(policy, ecoScore, request);    }
+        return buildPolicyResponse(policy, ecoScore, request);
+    }
 
     // ─── DELETE ──────────────────────────────────────────────────────────────
 
     @Override
     @Transactional
-    public void deletePolicy(String policyId) {
+    public void deletePolicy(String policyId, RequestContext ctx) {
         logger.info("Deleting policy with ID: {}", policyId);
 
-        if (!policyRepository.existsById(policyId)) {
-            throw new PolicyNotFoundException(policyId);
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> new PolicyNotFoundException(policyId));
+
+        // CUSTOMER cannot delete policies
+        if (ctx.isCustomer()) {
+            throw new ForbiddenPolicyAccessException(
+                    "Access denied: CUSTOMER role cannot modify policies");
         }
+
+        // Org-scoped: deny if policy belongs to a different org
+        if (ctx.isOrgScoped()) {
+            if (!Objects.equals(policy.getOrganizationId(), ctx.getOrganizationId())) {
+                throw new ForbiddenPolicyAccessException(
+                        "Access denied: policy belongs to a different organization");
+            }
+        }
+
+        // ADMIN: no check
 
         policyRepository.deleteById(policyId); // cascades to type-specific + eco_scores
         logger.info("Policy deleted successfully: {}", policyId);
@@ -294,6 +383,9 @@ public class PolicyServiceImpl implements PolicyService {
         response.setContactInfo(policy.getContactInfo());
         response.setCreatedDate(policy.getCreatedDate());
         response.setUpdatedDate(policy.getUpdatedDate());
+        response.setOrganizationId(policy.getOrganizationId());
+        response.setCustomerId(policy.getCustomerId());
+        response.setCreatedById(policy.getCreatedById());
 
         if (ecoScore != null) {
             response.setEcoScore(buildEcoScoreDTO(policy.getPolicyId(), ecoScore, policy.getPolicyType()));
@@ -342,6 +434,9 @@ public class PolicyServiceImpl implements PolicyService {
         response.setContactInfo(policy.getContactInfo());
         response.setCreatedDate(policy.getCreatedDate());
         response.setUpdatedDate(policy.getUpdatedDate());
+        response.setOrganizationId(policy.getOrganizationId());
+        response.setCustomerId(policy.getCustomerId());
+        response.setCreatedById(policy.getCreatedById());
 
         if (ecoScore != null) {
             response.setEcoScore(buildEcoScoreDTO(policy.getPolicyId(), ecoScore, policy.getPolicyType()));

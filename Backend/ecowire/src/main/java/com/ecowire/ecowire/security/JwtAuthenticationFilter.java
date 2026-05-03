@@ -43,11 +43,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String username = jwtUtil.extractUsername(token);
                 String role     = jwtUtil.extractRole(token);
+                String userId   = jwtUtil.extractUserId(token);
+                String organizationId = jwtUtil.extractOrganizationId(token);
 
-                // Build authentication with role
+                // Build typed principal carrying all three identity fields
+                EcowirePrincipal principal = new EcowirePrincipal(userId, username, role, organizationId);
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                username,
+                                principal,
                                 null,
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );

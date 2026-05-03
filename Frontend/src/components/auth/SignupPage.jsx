@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService.js';
+import { apiService } from '../../services/api.js';
 
 const ROLES = ['CUSTOMER', 'AGENT', 'UNDERWRITER', 'REPORTING', 'AUDITOR', 'ADMIN'];
+const ORG_SCOPED_ROLES = ['AGENT', 'UNDERWRITER', 'REPORTING', 'AUDITOR'];
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,6 +15,10 @@ const SignupPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('');
+    const [organizationId, setOrganizationId] = useState('');
+    const [organizations, setOrganizations] = useState([]);
+    const [orgLoading, setOrgLoading] = useState(false);
+    const [orgError, setOrgError] = useState('');
     const [errors, setErrors] = useState({});
     const [serverError, setServerError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,7 +41,34 @@ const SignupPage = () => {
     };
 
     const handleRoleChange = (e) => {
-        setRole(e.target.value);
+        const newRole = e.target.value;
+        setRole(newRole);
+        clearServerError();
+
+        if (ORG_SCOPED_ROLES.includes(newRole)) {
+            setOrgLoading(true);
+            setOrgError('');
+            setOrganizationId('');
+            apiService.getOrganizations()
+                .then((response) => {
+                    setOrganizations(response.data);
+                })
+                .catch(() => {
+                    setOrgError('Could not load organizations. Please try again.');
+                })
+                .finally(() => {
+                    setOrgLoading(false);
+                });
+        } else {
+            setOrganizationId('');
+            setOrganizations([]);
+            setOrgLoading(false);
+            setOrgError('');
+        }
+    };
+
+    const handleOrganizationChange = (e) => {
+        setOrganizationId(e.target.value);
         clearServerError();
     };
 
@@ -69,6 +102,10 @@ const SignupPage = () => {
             newErrors.role = 'Please select a role.';
         }
 
+        if (ORG_SCOPED_ROLES.includes(role) && !organizationId) {
+            newErrors.organizationId = 'Please select an organization.';
+        }
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
@@ -79,7 +116,8 @@ const SignupPage = () => {
         setServerError('');
 
         try {
-            await authService.signup(username, email, password, role);
+            const orgId = ORG_SCOPED_ROLES.includes(role) ? organizationId : undefined;
+            await authService.signup(username, email, password, role, orgId);
             navigate('/login');
         } catch (error) {
             const message =
@@ -195,6 +233,48 @@ const SignupPage = () => {
                             <div className="invalid-feedback">{errors.role}</div>
                         )}
                     </div>
+
+                    {/* Organization selector — visible only for org-scoped roles */}
+                    {ORG_SCOPED_ROLES.includes(role) && (
+                        <div className="mb-4">
+                            <label htmlFor="organizationId" className="form-label">
+                                Organization
+                            </label>
+                            {orgLoading ? (
+                                <div className="d-flex align-items-center">
+                                    <span
+                                        className="spinner-border spinner-border-sm me-2"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                    <span className="text-muted small">Loading organizations...</span>
+                                </div>
+                            ) : (
+                                <select
+                                    id="organizationId"
+                                    className={`form-select${errors.organizationId ? ' is-invalid' : ''}`}
+                                    value={organizationId}
+                                    onChange={handleOrganizationChange}
+                                    disabled={!!orgError}
+                                >
+                                    <option value="">Select an organization</option>
+                                    {organizations.map((org) => (
+                                        <option key={org.organizationId} value={org.organizationId}>
+                                            {org.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                            {errors.organizationId && (
+                                <div className="invalid-feedback" style={{ display: 'block' }}>
+                                    {errors.organizationId}
+                                </div>
+                            )}
+                            {orgError && (
+                                <div className="text-danger small mt-1">{orgError}</div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Submit button */}
                     <button

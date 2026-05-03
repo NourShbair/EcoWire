@@ -2,6 +2,7 @@ package com.ecowire.ecowire.controller;
 
 import com.ecowire.ecowire.dto.PolicyResponseDTO;
 import com.ecowire.ecowire.dto.RecommendationDTO;
+import com.ecowire.ecowire.security.RequestContext;
 import com.ecowire.ecowire.service.PolicyService;
 import com.ecowire.ecowire.service.RecommendationEngine;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,8 @@ public class RecommendationController {
             @PathVariable String id) {
 
         // Get policy details
-        PolicyResponseDTO policy = policyService.getPolicy(id);
+        RequestContext ctx = RequestContext.current();
+        PolicyResponseDTO policy = policyService.getPolicy(id, ctx);
 
         // Build attributes from policy details
         Map<String, Object> attributes = extractAttributes(policy);

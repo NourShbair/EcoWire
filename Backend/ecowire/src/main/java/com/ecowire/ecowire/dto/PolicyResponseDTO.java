@@ -15,6 +15,11 @@ public class PolicyResponseDTO {
     private LocalDateTime updatedDate;
     private EcoScoreDTO ecoScore;
 
+    // Multi-tenancy scoping fields
+    private String organizationId;
+    private String customerId;
+    private String createdById;
+
     // Type-specific details (only one will be populated)
     private AutoPolicyDTO autoDetails;
     private HomePolicyDTO homeDetails;

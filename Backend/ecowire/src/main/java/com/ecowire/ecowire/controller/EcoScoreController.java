@@ -3,6 +3,7 @@ package com.ecowire.ecowire.controller;
 import com.ecowire.ecowire.dto.EcoScoreDTO;
 import com.ecowire.ecowire.dto.PolicyResponseDTO;
 import com.ecowire.ecowire.enums.PolicyType;
+import com.ecowire.ecowire.security.RequestContext;
 import com.ecowire.ecowire.service.EcoScoringEngine;
 import com.ecowire.ecowire.service.PolicyService;
 import com.ecowire.ecowire.scoring.EcoScoreResult;
@@ -28,7 +29,8 @@ public class EcoScoreController {
     @GetMapping("/policies/{id}/ecoscore")
     public ResponseEntity<EcoScoreDTO> getEcoScore(
             @PathVariable String id) {
-        PolicyResponseDTO policy = policyService.getPolicy(id);
+        RequestContext ctx = RequestContext.current();
+        PolicyResponseDTO policy = policyService.getPolicy(id, ctx);
         return ResponseEntity.ok(policy.getEcoScore());
     }
 

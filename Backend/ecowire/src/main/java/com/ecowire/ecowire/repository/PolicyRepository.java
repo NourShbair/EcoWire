@@ -11,4 +11,6 @@ import java.util.List;
 public interface PolicyRepository extends JpaRepository<Policy, String> {
     List<Policy> findByPolicyType(PolicyType policyType);
     List<Policy> findByCustomerName(String customerName);
+    List<Policy> findByOrganizationId(String organizationId);
+    List<Policy> findByCustomerId(String customerId);
 }

@@ -52,6 +52,10 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
+                        // ── Organization list — public GET only ───────────────
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/organizations")
+                                .permitAll()
+
                         // ── Policy creation — AGENT and ADMIN only ────────────
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/policies")
                                 .hasAnyRole("AGENT", "ADMIN")

@@ -21,12 +21,16 @@ public class JwtUtil {
     @Value("${ecowire.jwt.expiration}")
     private long expirationMs;
 
-    // Generate token
-    public String generateToken(String userId, String username, String role) {
-        return Jwts.builder()
+    // Generate token — organizationId is null for CUSTOMER and ADMIN
+    public String generateToken(String userId, String username, String role, String organizationId) {
+        var builder = Jwts.builder()
                 .subject(username)
                 .claim("userId", userId)
-                .claim("role", role)
+                .claim("role", role);
+        if (organizationId != null) {
+            builder.claim("organizationId", organizationId);
+        }
+        return builder
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey())
@@ -46,6 +50,11 @@ public class JwtUtil {
     // Extract userId from token
     public String extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", String.class));
+    }
+
+    // Extract organizationId from token — returns null if claim is absent (unscoped roles)
+    public String extractOrganizationId(String token) {
+        return extractClaim(token, claims -> claims.get("organizationId", String.class));
     }
 
     // Validate token

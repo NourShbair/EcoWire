@@ -3,6 +3,8 @@ package com.ecowire.ecowire.exception;
 import com.ecowire.ecowire.dto.ErrorResponseDTO;
 import com.ecowire.ecowire.dto.FieldErrorDTO;
 import com.ecowire.ecowire.dto.ValidationErrorResponseDTO;
+import com.ecowire.ecowire.exception.ForbiddenPolicyAccessException;
+import com.ecowire.ecowire.exception.OrganizationNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,6 +149,40 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(OrganizationNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleOrganizationNotFound(
+            OrganizationNotFoundException ex,
+            HttpServletRequest request) {
+
+        logger.error("Organization not found: {}", ex.getMessage());
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ForbiddenPolicyAccessException.class)
+    public ResponseEntity<ErrorResponseDTO> handleForbiddenPolicyAccess(
+            ForbiddenPolicyAccessException ex,
+            HttpServletRequest request) {
+
+        logger.error("Forbidden policy access: {}", ex.getMessage());
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
 }

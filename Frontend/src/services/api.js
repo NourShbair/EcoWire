@@ -42,7 +42,8 @@ export const apiService = {
     getRecommendations: (id) => api.get(`policies/${id}/recommendations`),
     createPolicy: (data) => api.post('policies', data),
     deletePolicy: (id) => api.delete(`policies/${id}`),
-    updatePolicy: (id, data) => api.put(`policies/${id}`, data)
+    updatePolicy: (id, data) => api.put(`policies/${id}`, data),
+    getOrganizations: () => api.get('organizations')
 };
 
 export default api;
