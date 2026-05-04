@@ -13,6 +13,9 @@ const PolicyDashboard = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [explanation, setExplanation] = useState(null);
+    const [explanationLoading, setExplanationLoading] = useState(true);
+    const [explanationError, setExplanationError] = useState(null);
 
     const formatLabel = (key) => {
         if (!key) return '';
@@ -50,17 +53,34 @@ const PolicyDashboard = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const [policyRes, recsRes] = await Promise.all([
-                    apiService.getPolicyDetails(policyId),
-                    apiService.getRecommendations(policyId)
-                ]);
+                const policyRes = await apiService.getPolicyDetails(policyId);
                 setPolicy(policyRes.data);
-                setRecommendations(recsRes.data);
             } catch (err) {
                 console.error("Dashboard load failed", err);
                 setError("Could not load policy details. It may have been deleted or the backend is offline.");
             } finally {
                 setLoading(false);
+            }
+
+            // Fetch recommendations separately so AI failures don't block the dashboard
+            try {
+                const recsRes = await apiService.getRecommendations(policyId);
+                setRecommendations(recsRes.data);
+            } catch (err) {
+                console.error("Recommendations load failed", err);
+                setRecommendations([]);
+            }
+
+            // Fetch explanation separately so failures don't block the dashboard
+            setExplanationLoading(true);
+            try {
+                const explanationRes = await apiService.getEcoScoreExplanation(policyId);
+                setExplanation(explanationRes.data.explanation);
+            } catch (err) {
+                console.error("Explanation load failed", err);
+                setExplanationError("Could not load AI explanation.");
+            } finally {
+                setExplanationLoading(false);
             }
         };
         if (policyId) loadData();
@@ -177,6 +197,27 @@ const PolicyDashboard = () => {
 
                     {/* Breakdown Card */}
                     <ScoreBreakdown breakdownItems={breakdownItems} />
+
+                    {/* AI Eco Score Explanation */}
+                    <div className="p-4 bg-white shadow-sm border rounded-4" style={{ backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f8fbf9)' }}>
+                        <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                            <i className="bi bi-stars text-success"></i>
+                            AI Eco Score Explanation
+                        </h6>
+                        {explanationLoading ? (
+                            <div className="d-flex align-items-center gap-2 text-muted">
+                                <div className="spinner-border spinner-border-sm text-success" role="status"></div>
+                                <span>Generating AI explanation...</span>
+                            </div>
+                        ) : explanationError ? (
+                            <div className="alert alert-warning mb-0 py-2 small" role="alert">
+                                <i className="bi bi-exclamation-triangle me-1"></i>
+                                {explanationError}
+                            </div>
+                        ) : (
+                            <p className="text-muted mb-0" style={{ lineHeight: '1.7' }}>{explanation}</p>
+                        )}
+                    </div>
 
                     {/* Recommendations Section */}
                     <div className="p-4 bg-white shadow-sm border rounded-4 flex-grow-1" style={{ backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f8fbf9)' }}>
