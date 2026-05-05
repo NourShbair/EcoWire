@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import PolicyForm from './components/PolicyForm';
 import PolicyDashboard from './components/PolicyDashboard';
 import PoliciesList from './components/PoliciesList';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -80,6 +81,7 @@ function App() {
                       } 
                     />
                     <Route path="/policies" element={<PoliciesList />} />
+                    <Route path="/analytics" element={<AnalyticsDashboard />} />
                     <Route path="/dashboard/:policyId" element={<PolicyDashboard />} />
                   </Routes>
                 </main>

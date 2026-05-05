@@ -37,6 +37,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 )}
             </div>
 
+
             <nav className="mt-4 flex-grow-1 overflow-hidden">
                 <RoleGuard permission={canCreatePolicy}>
                     <div className="px-3 mb-3">
@@ -68,6 +69,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 >
                     <i className="sidebar-icon bi bi-list-check fs-5"></i>
                     {!isCollapsed && <span className="sidebar-text ms-2">My Policies</span>}
+
                 </Link>
             </nav>
 
