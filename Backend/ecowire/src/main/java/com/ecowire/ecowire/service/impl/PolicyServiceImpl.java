@@ -488,8 +488,12 @@ public class PolicyServiceImpl implements PolicyService {
 
         Map<String, ScoreComponentDTO> breakdownDTO = new HashMap<>();
         if (ecoScore.getScoreBreakdown() != null) {
+            // Weight lookup for legacy seed data that stores flat numbers instead of nested objects
+            Map<String, int[]> weightLookup = getWeightLookup(policyType);
+
             ecoScore.getScoreBreakdown().forEach((key, value) -> {
                 if (value instanceof Map) {
+                    // Full nested format: {"points":28,"weight":40,"maxPoints":40,"description":"HYBRID"}
                     @SuppressWarnings("unchecked")
                     Map<String, Object> componentMap = (Map<String, Object>) value;
                     int points    = ((Number) componentMap.getOrDefault("points",      0)).intValue();
@@ -497,10 +501,45 @@ public class PolicyServiceImpl implements PolicyService {
                     int maxPoints = ((Number) componentMap.getOrDefault("maxPoints",   0)).intValue();
                     String desc   = String.valueOf(componentMap.getOrDefault("description", ""));
                     breakdownDTO.put(key, new ScoreComponentDTO(points, weight, maxPoints, desc));
+                } else if (value instanceof Number) {
+                    // Legacy flat format: {"vehicleType":30} — just the points as a plain number
+                    int points = ((Number) value).intValue();
+                    int[] weightAndMax = weightLookup.getOrDefault(key, new int[]{0, 0});
+                    breakdownDTO.put(key, new ScoreComponentDTO(points, weightAndMax[0], weightAndMax[1], ""));
                 }
             });
         }
         dto.setScoreBreakdown(breakdownDTO);
         return dto;
+    }
+
+    /**
+     * Returns a map of component key → [weight, maxPoints] for legacy seed data
+     * that only stores flat point values without weight/maxPoints metadata.
+     */
+    private Map<String, int[]> getWeightLookup(PolicyType policyType) {
+        Map<String, int[]> lookup = new HashMap<>();
+        switch (policyType) {
+            case AUTO -> {
+                lookup.put("vehicleType",    new int[]{40, 40});
+                lookup.put("annualMileage",  new int[]{30, 30});
+                lookup.put("usageType",      new int[]{20, 20});
+                lookup.put("fuelEfficiency", new int[]{10, 10});
+            }
+            case HOME -> {
+                lookup.put("energyRating",      new int[]{35, 35});
+                lookup.put("renewableEnergy",   new int[]{25, 25});
+                lookup.put("insulationType",    new int[]{20, 20});
+                lookup.put("heatingSystem",     new int[]{10, 10});
+                lookup.put("waterConservation", new int[]{10, 10});
+            }
+            case PROPERTY -> {
+                lookup.put("certifications",  new int[]{40, 40});
+                lookup.put("energySystems",   new int[]{30, 30});
+                lookup.put("wasteManagement", new int[]{15, 15});
+                lookup.put("location",        new int[]{15, 15});
+            }
+        }
+        return lookup;
     }
 }

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import PolicyForm from './components/PolicyForm';
@@ -28,6 +29,25 @@ function RoleProtectedRoute({ children, permission, fallback = '/policies' }) {
 }
 
 function App() {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   return (
     <Router>
       <Routes>
@@ -37,15 +57,18 @@ function App() {
           path="/*"
           element={
             <ProtectedRoute>
-              <div className="main-layout">
-                <Sidebar />
+              <div className={`main-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <Sidebar 
+                  isCollapsed={isSidebarCollapsed} 
+                  onToggle={toggleSidebar} 
+                />
                 <main className="content-wrapper">
                   <Routes>
                     <Route 
                       path="/" 
                       element={
                         <RoleProtectedRoute permission={canCreatePolicy}>
-                          <PolicyForm />
+                          <PolicyForm isSidebarCollapsed={isSidebarCollapsed} />
                         </RoleProtectedRoute>
                       } 
                     />
@@ -53,7 +76,7 @@ function App() {
                       path="/edit/:policyId" 
                       element={
                         <RoleProtectedRoute permission={canEditPolicy}>
-                          <PolicyForm />
+                          <PolicyForm isSidebarCollapsed={isSidebarCollapsed} />
                         </RoleProtectedRoute>
                       } 
                     />

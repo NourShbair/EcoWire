@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --eco-primary: #004d40;
     --eco-secondary: #00796b;
@@ -7,6 +11,8 @@
     --glass-bg: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(0, 77, 64, 0.15);
     --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+    --transition-speed: 0.3s;
 }
 
 body {
@@ -16,6 +22,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--eco-bg);
     color: #2c3e50;
+    overflow-x: hidden;
 }
 
 .glass-card {
@@ -48,13 +55,38 @@ body {
 
 .main-layout {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    max-width: 100vw;
 }
 
 .content-wrapper {
     flex-grow: 1;
     margin-left: var(--sidebar-width);
     padding: 3rem;
+    transition: margin-left var(--transition-speed) ease;
+    width: calc(100% - var(--sidebar-width));
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-collapsed .content-wrapper {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        margin-left: var(--sidebar-width);
+        padding: 1.5rem;
+        width: calc(100% - var(--sidebar-width));
+    }
+    
+    .sidebar-collapsed .content-wrapper {
+        margin-left: var(--sidebar-collapsed-width);
+        width: calc(100% - var(--sidebar-collapsed-width));
+    }
 }
 
 .form-label {
@@ -115,4 +147,38 @@ body {
     color: #198754 !important;
     border-color: rgba(25, 135, 84, 0.25) !important;
     opacity: 1 !important;
+}
+
+.form-section {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: start;
+    width: 100%;
+}
+
+.policy-form-footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    border-top: 1px solid #dee2e6;
+    background-color: white;
+    z-index: 1000;
+    padding: 1.25rem 2rem;
+    transition: all var(--transition-speed) ease;
+}
+
+@media (max-width: 768px) {
+    .policy-form-footer {
+        padding: 1rem;
+    }
+}
+
+.responsive-h1 {
+    font-size: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .responsive-h1 {
+        font-size: 1.75rem;
+    }
 }

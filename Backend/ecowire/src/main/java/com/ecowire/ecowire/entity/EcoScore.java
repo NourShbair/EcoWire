@@ -1,6 +1,5 @@
 package com.ecowire.ecowire.entity;
 
-import com.ecowire.ecowire.converter.ScoreBreakdownConverter;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -24,7 +23,6 @@ public class EcoScore {
     @Column(name = "total_score", nullable = false)
     private Integer totalScore;
 
-    @Convert(converter = ScoreBreakdownConverter.class)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "score_breakdown", nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> scoreBreakdown;
