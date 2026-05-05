@@ -20,7 +20,7 @@ public class PolicyResponseDTO {
     private String customerId;
     private String createdById;
 
-    // Type-specific details (only one will be populated)
+    // Type-specific details — only one will be populated based on policyType
     private AutoPolicyDTO autoDetails;
     private HomePolicyDTO homeDetails;
     private PropertyPolicyDTO propertyDetails;
