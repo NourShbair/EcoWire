@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 public class Organization {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "organization_id", updatable = false, nullable = false)
+    @Column(name = "organization_id", updatable = false, nullable = false, length = 36)
     private String organizationId;
 
     @Column(name = "name", nullable = false, unique = true)
