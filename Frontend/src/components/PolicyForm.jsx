@@ -5,7 +5,7 @@ import { apiService } from '../services/api';
 import EcoSelect from './EcoSelect';
 import clsx from 'clsx';
 
-const PolicyForm = ({ isSidebarCollapsed }) => {
+const PolicyForm = ({ isSidebarCollapsed, isMobile }) => {
     const navigate = useNavigate();
     const { policyId } = useParams();
     const isEditMode = !!policyId;
@@ -567,8 +567,12 @@ const PolicyForm = ({ isSidebarCollapsed }) => {
             <div
                 className="policy-form-footer"
                 style={{
-                    width: isSidebarCollapsed ? 'calc(100% - var(--sidebar-collapsed-width))' : 'calc(100% - var(--sidebar-width))',
-                    left: isSidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'
+                    width: isMobile 
+                        ? '100%' 
+                        : (isSidebarCollapsed ? 'calc(100% - var(--sidebar-collapsed-width))' : 'calc(100% - var(--sidebar-width))'),
+                    left: isMobile 
+                        ? '0' 
+                        : (isSidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)')
                 }}
             >
                 <div className="d-flex justify-content-between align-items-center mx-auto" style={{ maxWidth: '900px' }}>

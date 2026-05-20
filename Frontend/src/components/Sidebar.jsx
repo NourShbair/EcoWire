@@ -4,7 +4,7 @@ import RoleGuard from './auth/RoleGuard.jsx';
 import { canCreatePolicy } from '../services/permissionService.js';
 import '../styles/Sidebar.css';
 
-const Sidebar = ({ isCollapsed, onToggle }) => {
+const Sidebar = ({ isCollapsed, onToggle, onLinkClick }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -46,6 +46,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                             className={`btn w-100 text-start d-flex align-items-center rounded-3 text-white ${location.pathname === '/' ? 'fw-bold' : ''} ${isCollapsed ? 'justify-content-center px-0' : ''}`}
                             style={{ border: '1px solid white', backgroundColor: 'transparent' }}
                             title="New Policy"
+                            onClick={onLinkClick}
                         >
                             <i className="sidebar-icon bi bi-plus-circle fs-5"></i>
                             {!isCollapsed && <span className="sidebar-text ms-2">New Policy</span>}
@@ -57,6 +58,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                     to="/analytics"
                     className={`nav-link ${location.pathname === '/analytics' ? 'active' : ''} ${isCollapsed ? 'justify-content-center' : ''}`}
                     title="Analytics"
+                    onClick={onLinkClick}
                 >
                     <i className="sidebar-icon bi bi-bar-chart fs-5"></i>
                     {!isCollapsed && <span className="sidebar-text ms-2">Analytics</span>}
@@ -66,6 +68,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                     to="/policies"
                     className={`nav-link ${location.pathname.includes('/policies') ? 'active' : ''} ${isCollapsed ? 'justify-content-center' : ''}`}
                     title="My Policies"
+                    onClick={onLinkClick}
                 >
                     <i className="sidebar-icon bi bi-list-check fs-5"></i>
                     {!isCollapsed && <span className="sidebar-text ms-2">My Policies</span>}

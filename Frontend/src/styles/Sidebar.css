@@ -93,10 +93,10 @@
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .sidebar {
-        width: var(--sidebar-width);
+        display: none !important;
     }
     
-    .sidebar.collapsed {
-        width: var(--sidebar-collapsed-width);
+    .sidebar-toggle-btn {
+        display: none !important;
     }
 }
