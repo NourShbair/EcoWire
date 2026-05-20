@@ -13,8 +13,7 @@ import java.util.List;
 public class Policy {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "policy_id", updatable = false, nullable = false)
+    @Column(name = "policy_id", updatable = false, nullable = false, length = 100)
     private String policyId;
 
     @Column(name = "customer_name", nullable = false)

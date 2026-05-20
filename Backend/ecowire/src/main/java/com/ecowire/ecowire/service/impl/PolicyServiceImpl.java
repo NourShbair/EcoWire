@@ -37,6 +37,7 @@ public class PolicyServiceImpl implements PolicyService {
     @Autowired private PropertyPolicyRepository propertyPolicyRepository;
     @Autowired private EcoScoreRepository       ecoScoreRepository;
     @Autowired private UserRepository           userRepository;
+    @Autowired private OrganizationRepository   organizationRepository;
     @Autowired private EcoScoringEngine         scoringEngine;
     @Autowired private RecommendationEngine     recommendationEngine;
 
@@ -73,6 +74,10 @@ public class PolicyServiceImpl implements PolicyService {
             }
             policy.setCustomerId(request.getCustomerId());
         }
+
+        // Generate custom policy ID: {org-initials}-{policy-type}-{3-digit-sequence}
+        String policyId = generatePolicyId(policy.getOrganizationId(), request.getPolicyType());
+        policy.setPolicyId(policyId);
 
         policy = policyRepository.saveAndFlush(policy);
 
@@ -253,6 +258,46 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     // ─── PRIVATE HELPERS ─────────────────────────────────────────────────────
+
+    /**
+     * Generates a custom policy ID in the format: {org-name}-{policy-type}-{3-digit-sequence}
+     * Example: acme agency-auto-001 (for organization "Acme Agency", policy type AUTO, first policy)
+     *
+     * The org name is lowercased. If no organization is associated, defaults to "ecowire".
+     */
+    private String generatePolicyId(String organizationId, PolicyType policyType) {
+        // Derive organization name segment
+        String orgSegment;
+        if (organizationId != null) {
+            Organization org = organizationRepository.findByOrganizationId(organizationId)
+                    .orElse(null);
+            if (org != null && org.getName() != null && !org.getName().isBlank()) {
+                orgSegment = org.getName().trim().toLowerCase().replaceAll("\\s+", "");
+            } else {
+                orgSegment = "ecowire";
+            }
+        } else {
+            orgSegment = "ecowire";
+        }
+
+        // Policy type segment (lowercased)
+        String typeSegment = policyType.name().toLowerCase();
+
+        // Determine next sequence number
+        long count;
+        if (organizationId != null) {
+            count = policyRepository.countByOrganizationIdAndPolicyType(organizationId, policyType);
+        } else {
+            count = policyRepository.countByPolicyTypeAndOrganizationIdIsNull(policyType);
+        }
+        String sequence = String.format("%03d", count + 1);
+
+        // Format: for PROPERTY use "org name - property - 001", otherwise "org name-type-001"
+        if (policyType == PolicyType.PROPERTY) {
+            return orgSegment + "-prop-" + sequence;
+        }
+        return orgSegment + "-" + typeSegment + "-" + sequence;
+    }
 
     private void saveTypeSpecificEntity(Policy policy, PolicyRequestDTO request) {
         switch (request.getPolicyType()) {

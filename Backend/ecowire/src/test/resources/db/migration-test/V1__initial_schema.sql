@@ -1,6 +1,6 @@
 -- Base policies table (H2-compatible)
 CREATE TABLE policies (
-    policy_id     VARCHAR(36) PRIMARY KEY,
+    policy_id     VARCHAR(100) PRIMARY KEY,
     customer_name VARCHAR(255) NOT NULL,
     contact_info  VARCHAR(255) NOT NULL,
     policy_type   VARCHAR(20)  NOT NULL CHECK (policy_type IN ('AUTO', 'HOME', 'PROPERTY')),
@@ -14,7 +14,7 @@ CREATE INDEX idx_policies_customer ON policies(customer_name);
 -- Auto policies
 CREATE TABLE auto_policies (
     auto_policy_id VARCHAR(36) PRIMARY KEY,
-    policy_id      VARCHAR(36) NOT NULL UNIQUE,
+    policy_id      VARCHAR(100) NOT NULL UNIQUE,
     vehicle_id     VARCHAR(100) NOT NULL,
     vehicle_type   VARCHAR(20) NOT NULL CHECK (vehicle_type IN ('PETROL','DIESEL','HYBRID','ELECTRIC')),
     annual_mileage VARCHAR(20) NOT NULL CHECK (annual_mileage IN ('LOW','MEDIUM','HIGH')),
@@ -28,7 +28,7 @@ CREATE INDEX idx_auto_policies_policy ON auto_policies(policy_id);
 -- Home policies
 CREATE TABLE home_policies (
     home_policy_id              VARCHAR(36)  PRIMARY KEY,
-    policy_id                   VARCHAR(36)  NOT NULL UNIQUE,
+    policy_id                   VARCHAR(100)  NOT NULL UNIQUE,
     property_address            VARCHAR(500) NOT NULL,
     energy_rating               VARCHAR(1)   NOT NULL CHECK (energy_rating IN ('A','B','C','D','E','F','G')),
     has_solar_panels            BOOLEAN      NOT NULL,
@@ -43,7 +43,7 @@ CREATE INDEX idx_home_policies_policy ON home_policies(policy_id);
 -- Property policies
 CREATE TABLE property_policies (
     property_policy_id VARCHAR(36)  PRIMARY KEY,
-    policy_id          VARCHAR(36)  NOT NULL UNIQUE,
+    policy_id          VARCHAR(100)  NOT NULL UNIQUE,
     property_address   VARCHAR(500) NOT NULL,
     property_type      VARCHAR(20)  NOT NULL CHECK (property_type IN ('COMMERCIAL','RESIDENTIAL')),
     certifications     TEXT,
@@ -58,7 +58,7 @@ CREATE INDEX idx_property_policies_policy ON property_policies(policy_id);
 -- Eco scores (using JSON instead of JSONB for H2 compatibility)
 CREATE TABLE eco_scores (
     score_id         VARCHAR(36) PRIMARY KEY,
-    policy_id        VARCHAR(36) NOT NULL,
+    policy_id        VARCHAR(100) NOT NULL,
     total_score      INTEGER     NOT NULL CHECK (total_score >= 0 AND total_score <= 100),
     score_breakdown  TEXT        NOT NULL,
     calculated_date  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,

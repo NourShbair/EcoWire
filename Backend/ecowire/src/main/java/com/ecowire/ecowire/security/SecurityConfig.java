@@ -99,14 +99,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow React dev server
+        // Allow React dev server and production
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "http://localhost:5175",
                 "http://localhost:5176",
-                "http://localhost:5177"
+                "http://localhost:5177",
+                "https://ecowire.site",
+                "https://www.ecowire.site"
         ));
 
         // Allow all standard HTTP methods including OPTIONS (preflight)

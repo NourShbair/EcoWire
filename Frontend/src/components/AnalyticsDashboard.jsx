@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { authService } from '../services/authService';
@@ -62,74 +62,44 @@ const AnalyticsDashboard = () => {
     const homeCount = policies.filter(p => p.policyType === 'HOME').length;
     const propertyCount = policies.filter(p => p.policyType === 'PROPERTY').length;
 
-    // Real Data Extractions from Policy Configurations
+    // Data extractions from policy configurations
     const electricHybridCount = policies.filter(p => p.policyType === 'AUTO' && p.autoDetails && ['ELECTRIC', 'HYBRID'].includes(p.autoDetails.vehicleType)).length;
     const solarHomesCount = policies.filter(p => p.policyType === 'HOME' && p.homeDetails && p.homeDetails.hasSolarPanels).length;
     const highEnergyRatingCount = policies.filter(p => p.policyType === 'HOME' && p.homeDetails && ['A', 'B'].includes(p.homeDetails.energyRating)).length;
     const renewablePropCount = policies.filter(p => p.policyType === 'PROPERTY' && p.propertyDetails && ['SOLAR', 'WIND', 'GEOTHERMAL', 'HYBRID'].includes(p.propertyDetails.energySystems)).length;
 
-    // --- Role Configurations ---
+    // Role-specific section titles
     const getRoleConfig = () => {
         const commonSummaryTitle = 'Sustainability Compliance Summary';
-        const commonSummarySubtitle = 'Overview of sustainability metrics';
+        const commonSummarySubtitle = 'Overview of sustainability metrics across your accessible policies';
 
         switch (role) {
             case 'CUSTOMER':
-                return {
-                    summaryTitle: commonSummaryTitle,
-                    summarySubtitle: commonSummarySubtitle,
-                    compositionTitle: 'Policy Portfolio Composition',
-                    distributionTitle: 'Policy Health Overview'
-                };
+                return { summaryTitle: commonSummaryTitle, summarySubtitle: commonSummarySubtitle, compositionTitle: 'Policy Portfolio Composition', distributionTitle: 'Policy Health Overview' };
             case 'AGENT':
-                return {
-                    summaryTitle: commonSummaryTitle,
-                    summarySubtitle: commonSummarySubtitle,
-                    compositionTitle: 'Asset Class Composition',
-                    distributionTitle: 'Client Sustainability Distribution'
-                };
+                return { summaryTitle: commonSummaryTitle, summarySubtitle: commonSummarySubtitle, compositionTitle: 'Asset Class Composition', distributionTitle: 'Client Sustainability Distribution' };
             case 'UNDERWRITER':
-                return {
-                    summaryTitle: commonSummaryTitle,
-                    summarySubtitle: commonSummarySubtitle,
-                    compositionTitle: 'Policy Class Concentration',
-                    distributionTitle: 'Organizational Risk Distribution'
-                };
+                return { summaryTitle: commonSummaryTitle, summarySubtitle: commonSummarySubtitle, compositionTitle: 'Policy Class Concentration', distributionTitle: 'Organizational Risk Distribution' };
             case 'REPORTING':
             case 'AUDITOR':
-                return {
-                    summaryTitle: commonSummaryTitle,
-                    summarySubtitle: commonSummarySubtitle,
-                    compositionTitle: 'Covered Assets Breakdown',
-                    distributionTitle: 'Green Compliance Spread'
-                };
+                return { summaryTitle: commonSummaryTitle, summarySubtitle: commonSummarySubtitle, compositionTitle: 'Covered Assets Breakdown', distributionTitle: 'Green Compliance Spread' };
             case 'ADMIN':
-                return {
-                    summaryTitle: commonSummaryTitle,
-                    summarySubtitle: commonSummarySubtitle,
-                    compositionTitle: 'Global Asset Composition',
-                    distributionTitle: 'Global Score Distribution'
-                };
+                return { summaryTitle: commonSummaryTitle, summarySubtitle: commonSummarySubtitle, compositionTitle: 'Global Asset Composition', distributionTitle: 'Global Score Distribution' };
             default:
-                return {
-                    summaryTitle: commonSummaryTitle,
-                    summarySubtitle: commonSummarySubtitle,
-                    compositionTitle: 'Composition',
-                    distributionTitle: 'Distribution'
-                };
+                return { summaryTitle: commonSummaryTitle, summarySubtitle: commonSummarySubtitle, compositionTitle: 'Composition', distributionTitle: 'Distribution' };
         }
     };
 
     const config = getRoleConfig();
 
-    // --- Chart Data ---
+    // Chart data
     const COLORS = {
-        auto: '#198754',      // bs-success
-        home: '#ffc107',      // bs-warning
-        property: '#0dcaf0',  // bs-info
-        excellent: '#198754', // bs-success
-        good: '#ffc107',      // bs-warning
-        poor: '#dc3545'       // bs-danger
+        auto: '#198754',
+        home: '#ffc107',
+        property: '#0dcaf0',
+        excellent: '#198754',
+        good: '#ffc107',
+        poor: '#dc3545'
     };
 
     const pieData = [
@@ -144,7 +114,6 @@ const AnalyticsDashboard = () => {
         { name: 'Needs Impr.', count: needsImprovementCount, color: COLORS.poor },
     ];
 
-    // Helper component for simple metric cards
     const MetricCard = ({ title, value, icon, subtitle }) => (
         <div className="col-md-3 col-sm-6 mb-4">
             <div className="glass-card p-4 h-100 bg-white border-0 shadow-sm rounded-4 text-start">
@@ -162,61 +131,70 @@ const AnalyticsDashboard = () => {
 
     const renderRoleSpecificMetrics = () => {
         switch (role) {
-            case 'CUSTOMER':
-                const estSavings = excellentCount * 150 + goodCount * 100;
+            case 'CUSTOMER': {
+                const discountPct = averageScore >= 67 ? 15 : averageScore >= 34 ? 10 : 0;
                 return (
                     <div className="row g-4">
                         <MetricCard title="Total Policies" value={totalPolicies} icon="bi-shield-check" subtitle="Your active policies" />
                         <MetricCard title="Avg Eco-Score" value={averageScore} icon="bi-lightning-charge" subtitle="Overall sustainability" />
-                        <MetricCard title="Est. Savings" value={`$${estSavings}`} icon="bi-piggy-bank" subtitle="Annual green discounts" />
-                        <MetricCard title="Impact Equivalent" value={`${Math.round(averageScore * 0.5)} Trees`} icon="bi-tree" subtitle="Planted per year" />
+                        <MetricCard title="Green Discount" value={`${discountPct}%`} icon="bi-piggy-bank" subtitle="Based on avg score tier" />
+                        <MetricCard title="Green Policies" value={excellentCount} icon="bi-award" subtitle="Scoring 67+ (Excellent)" />
                     </div>
                 );
-            case 'AGENT':
+            }
+            case 'AGENT': {
+                const improvementOps = needsImprovementCount + goodCount;
                 return (
                     <div className="row g-4">
                         <MetricCard title="Total Managed" value={totalPolicies} icon="bi-people" subtitle="Clients in portfolio" />
                         <MetricCard title="Portfolio Avg" value={averageScore} icon="bi-graph-up-arrow" subtitle="Average client score" />
-                        <MetricCard title="Upsell Ops" value={needsImprovementCount} icon="bi-telephone-outbound" subtitle="Clients needing improvement" />
+                        <MetricCard title="Improvement Ops" value={improvementOps} icon="bi-telephone-outbound" subtitle="Clients below Excellent tier" />
                         <MetricCard title="Green Assets" value={electricHybridCount + solarHomesCount} icon="bi-award" subtitle="EVs & Solar homes" />
                     </div>
                 );
-            case 'UNDERWRITER':
+            }
+            case 'UNDERWRITER': {
                 const highRiskRatio = totalPolicies > 0 ? Math.round((needsImprovementCount / totalPolicies) * 100) : 0;
                 return (
                     <div className="row g-4">
-                        <MetricCard title="Org Average" value={averageScore} icon="bi-building" subtitle="Overall score" />
-                        <MetricCard title="High-Risk Exposure" value={`${highRiskRatio}%`} icon="bi-exclamation-triangle" subtitle="Score < 34 ratio" />
-                        <MetricCard title="Low-Risk Assured" value={excellentCount} icon="bi-shield-check" subtitle="Score > 67" />
-                        <MetricCard title="Green Commercial" value={renewablePropCount} icon="bi-wind" subtitle="Renewable properties" />
+                        <MetricCard title="Org Average" value={averageScore} icon="bi-building" subtitle="Organization-wide score" />
+                        <MetricCard title="High-Risk Exposure" value={`${highRiskRatio}%`} icon="bi-exclamation-triangle" subtitle="Policies scoring below 34" />
+                        <MetricCard title="Low-Risk Assured" value={excellentCount} icon="bi-shield-check" subtitle="Policies scoring 67+" />
+                        <MetricCard title="Green Commercial" value={renewablePropCount} icon="bi-wind" subtitle="Renewable energy properties" />
                     </div>
                 );
+            }
             case 'REPORTING':
-            case 'AUDITOR':
-                const carbonProxy = Math.round(totalPolicies * 2.4);
+            case 'AUDITOR': {
+                const carbonProxy = Math.round(policies.reduce((sum, p) => {
+                    const s = p.ecoScore?.totalScore || 50;
+                    return sum + (5 - (s / 100) * 4.5);
+                }, 0));
                 const complianceRatio = totalPolicies > 0 ? Math.round(((excellentCount + goodCount) / totalPolicies) * 100) : 0;
                 return (
                     <div className="row g-4">
-                        <MetricCard title="Total Audited" value={totalPolicies} icon="bi-file-earmark-check" subtitle="Policies verified" />
-                        <MetricCard title="Compliance Health" value={`${complianceRatio}%`} icon="bi-heart-pulse" subtitle="Green ratio" />
-                        <MetricCard title="Est Carbon Proxy" value={`${carbonProxy} tCO2`} icon="bi-cloud-haze" subtitle="Total emissions proxy" />
-                        <MetricCard title="High Rating Homes" value={highEnergyRatingCount} icon="bi-house-check" subtitle="A or B Rating" />
+                        <MetricCard title="Total Audited" value={totalPolicies} icon="bi-file-earmark-check" subtitle="Policies in scope" />
+                        <MetricCard title="Compliance Rate" value={`${complianceRatio}%`} icon="bi-heart-pulse" subtitle="Policies scoring 34+" />
+                        <MetricCard title="Est. Emissions" value={`${carbonProxy} tCO₂e`} icon="bi-cloud-haze" subtitle="Score-based estimate" />
+                        <MetricCard title="High Rating Homes" value={highEnergyRatingCount} icon="bi-house-check" subtitle="Energy rating A or B" />
                     </div>
                 );
-            case 'ADMIN':
+            }
+            case 'ADMIN': {
                 const excellentRatio = totalPolicies > 0 ? Math.round((excellentCount / totalPolicies) * 100) : 0;
                 return (
                     <div className="row g-4">
                         <MetricCard title="System Policies" value={totalPolicies} icon="bi-database" subtitle="Total records" />
                         <MetricCard title="System Avg Score" value={averageScore} icon="bi-speedometer2" subtitle="Global average" />
-                        <MetricCard title="Excellent Ratio" value={`${excellentRatio}%`} icon="bi-star" subtitle="System-wide" />
-                        <MetricCard title="API Health" value="100%" icon="bi-hdd-network" subtitle="Uptime" />
+                        <MetricCard title="Excellent Ratio" value={`${excellentRatio}%`} icon="bi-star" subtitle="Policies scoring 67+" />
+                        <MetricCard title="Policy Types" value={`${autoCount}/${homeCount}/${propertyCount}`} icon="bi-grid" subtitle="Auto / Home / Property" />
                     </div>
                 );
+            }
             default:
                 return (
                     <div className="row g-4">
-                        <MetricCard title="Total Volume" value={totalPolicies} icon="bi-shield-check" subtitle="Active policies measured" />
+                        <MetricCard title="Total Policies" value={totalPolicies} icon="bi-shield-check" subtitle="Active policies" />
                         <MetricCard title="Average Score" value={averageScore} icon="bi-lightning-charge" subtitle="Mean sustainability score" />
                     </div>
                 );
@@ -242,7 +220,7 @@ const AnalyticsDashboard = () => {
                 </div>
             ) : (
                 <>
-                    {/* SECTION 1: Summary Metrics */}
+                    {/* Summary Metrics */}
                     <div className="mb-4">
                         <h5 className="fw-bold text-dark mb-3">{config.summaryTitle}</h5>
                         <p className="text-muted small mb-3">{config.summarySubtitle}</p>
@@ -250,7 +228,7 @@ const AnalyticsDashboard = () => {
                     </div>
 
                     <div className="row g-4 mt-2">
-                        {/* SECTION 2: Composition Pie Chart */}
+                        {/* Composition Pie Chart */}
                         <div className="col-md-6">
                             <div className="glass-card p-4 bg-white border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
                                 <h6 className="fw-bold text-dark mb-4">{config.compositionTitle}</h6>
@@ -278,7 +256,7 @@ const AnalyticsDashboard = () => {
                             </div>
                         </div>
 
-                        {/* SECTION 3: Distribution Bar Chart */}
+                        {/* Distribution Bar Chart */}
                         <div className="col-md-6">
                             <div className="glass-card p-4 bg-white border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
                                 <h6 className="fw-bold text-dark mb-4">{config.distributionTitle}</h6>
