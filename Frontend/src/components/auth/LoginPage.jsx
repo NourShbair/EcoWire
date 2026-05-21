@@ -148,7 +148,7 @@ const LoginPage = () => {
                 {/* Link to signup */}
                 <p className="text-center text-muted small mt-4 mb-0">
                     Don&apos;t have an account?{' '}
-                    <Link to="/signup" className="text-decoration-none fw-semibold">
+                    <Link to="/signup" className="text-decoration-none fw-semibold" style={{ color: 'var(--eco-primary)' }}>
                         Sign up
                     </Link>
                 </p>

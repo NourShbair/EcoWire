@@ -307,7 +307,7 @@ const SignupPage = () => {
                 {/* Link to login */}
                 <p className="text-center text-muted small mt-4 mb-0">
                     Already have an account?{' '}
-                    <Link to="/login" className="text-decoration-none fw-semibold">
+                    <Link to="/login" className="text-decoration-none fw-semibold" style={{ color: 'var(--eco-primary)' }}>
                         Sign in
                     </Link>
                 </p>
