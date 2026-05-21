@@ -126,7 +126,7 @@ const ScoreCard = ({ score, status, discount, policyType, topRecommendation }) =
                             <h6 className="fw-bold mb-0">Premium Impact</h6>
                         </div>
                         <span
-                            className={`badge ${tierInfo.bgClass} bg-opacity-15 ${tierInfo.textClass} fw-bold px-3 py-2 rounded-pill border ${tierInfo.borderClass} border-opacity-25`}
+                            className={`badge bg-opacity-15 ${tierInfo.textClass} fw-bold px-3 py-2 rounded-pill border ${tierInfo.borderClass} border-opacity-25`}
                         >
                             <i className={`bi ${tierInfo.icon} me-1`}></i>
                             {tierInfo.tier}
