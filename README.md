@@ -4,6 +4,12 @@
 
 # EcoWire
 
+
+
+https://github.com/user-attachments/assets/ba95c7ac-759a-44e3-8cec-479019c84e6d
+
+
+
 **A sustainability-focused insurance platform that scores, explains, and improves the environmental impact of insurance policies.**
 
 [![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=openjdk)](https://openjdk.org/projects/jdk/17/)
