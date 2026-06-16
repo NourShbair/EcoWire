@@ -5,9 +5,7 @@
 # EcoWire
 
 
-
-https://github.com/user-attachments/assets/ba95c7ac-759a-44e3-8cec-479019c84e6d
-
+https://github.com/user-attachments/assets/0671fcb1-2fe6-47f9-834b-aea6798bdeea
 
 
 **A sustainability-focused insurance platform that scores, explains, and improves the environmental impact of insurance policies.**
